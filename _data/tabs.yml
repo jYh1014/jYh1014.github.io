@@ -6,20 +6,20 @@
 
 
 -
-  name: 首页
+  name: "home"
   icon: "fas fa-home"
 -
-  name: "标签"
+  name: "tags"
   icon: "fas fa-tags"
   path: tabs
   url: tags
 -
-  name: "文章"
+  name: "archives"
   path: tabs
   url: archives
   icon: "fas fa-archive"
 -
-  name: "关于"
+  name: "about"
   icon: "fas fa-info"
   path: tabs
   url: about

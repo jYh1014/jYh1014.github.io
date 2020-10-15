@@ -3,7 +3,7 @@ title: 第一篇博客
 author: jyy
 date: 2020-10-15 15:20:00 +0800
 categories: [Blogging, Tutorial]
-tags: [writing]
+tags: [js]
 ---
 
 ## Naming and Path

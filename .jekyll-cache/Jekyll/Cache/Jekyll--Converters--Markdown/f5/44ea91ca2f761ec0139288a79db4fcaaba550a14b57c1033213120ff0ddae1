@@ -1,0 +1,8 @@
+I",<h2 id="promiseall">promise.all</h2>
+<blockquote>
+  <p>用于将多个 Promise 实例，包装成一个新的 Promise 实例</p>
+  <div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre>const p <span class="o">=</span> Promise.all<span class="o">([</span>p1, p2, p3]<span class="o">)</span><span class="p">;</span>
+</pre></td></tr></tbody></table></code></pre></div>  </div>
+</blockquote>
+:ET

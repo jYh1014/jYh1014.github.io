@@ -9,7 +9,7 @@ pin: true
 
 ## promise.all
 > 用于将多个 Promise 实例，包装成一个新的 Promise 实例 
-```
+```sh
 const p = Promise.all([p1, p2, p3]);
 ``` 
 
@@ -19,7 +19,7 @@ const p = Promise.all([p1, p2, p3]);
 
 （2）只要p1、p2、p3之中有一个被rejected，p的状态就变成rejected，此时第一个被reject的实例的返回值，会传递给p的回调函数。
 
-```
+```sh
 const p2 = new Promise((resolve, reject) => {
     resolve("ok")
 }).then(res => res).catch(e => console.log("p2:  " + e))
@@ -67,7 +67,7 @@ const p = Promise.race([p1, p2, p3]);
 ```
 上面代码中，只要p1、p2、p3之中有一个实例率先改变状态，p的状态就跟着改变。那个率先改变的 Promise 实例的返回值，就传递给p的回调函数。
 
-```
+```sh
 let p1 = new Promise((resolve, reject) => {
     setTimeout(() => {
         resolve("ok1")
@@ -95,7 +95,7 @@ Promise.race = (promises) => {
 ## promise.finally
 
 >用于指定不管 Promise 对象最后状态如何，都会执行的操作.本质上是then方法的特例
-```
+```sh
 Promise.prototype.finally = function (callback) {
     //等待finally中的函数执行完毕，finally函数可能返回的是一个promise，用promise.resolve等待返回的promise执行完
     return this.then((value) => {
@@ -112,7 +112,7 @@ Promise.prototype.finally = function (callback) {
 
 > 模拟try代码块
 
-```
+```sh
 function fn(){
     //函数中抛出的同步错误要用try catch捕获异常
     // throw new Error("error")

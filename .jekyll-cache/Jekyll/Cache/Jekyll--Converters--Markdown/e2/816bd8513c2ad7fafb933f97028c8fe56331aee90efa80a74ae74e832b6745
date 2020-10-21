@@ -1,6 +1,0 @@
-I"�<h2 id="promise介绍">promise介绍</h2>
-<blockquote>
-  <p><strong>1.promise是什么?</strong> <br />
-promise对象是一个构造函数,new了之后会立即执行。</p>
-</blockquote>
-:ET

@@ -1,7 +1,0 @@
-I"�<h2 id="promiseall">promise.all</h2>
-<blockquote>
-  <p>用于将多个 Promise 实例，包装成一个新的 Promise 实例<br />
-const p = Promise.all([p1, p2, p3]);
-p的状态由p1、p2、p3决定，分成两种情况。</p>
-</blockquote>
-:ET

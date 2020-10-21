@@ -110,6 +110,30 @@ Promise.prototype.finally = function (callback) {
 
 ## promise.try
 
+> 模拟try代码块
+
+```
+function fn(){
+    //函数中抛出的同步错误要用try catch捕获异常
+    // throw new Error("error")
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            reject("error123")
+        },1000)
+    })
+}
+Promise.try = function(callback){
+    return new Promise((resolve, reject) => {
+        //Promise.resolve只能返回一个成功的promise
+        return Promise.resolve(callback()).then(resolve, reject)
+    })
+}
+Promise.try(fn).catch(err => {
+    //同步和异步异常都能捕获
+    console.log(err)
+})
+```
+
 
 
 

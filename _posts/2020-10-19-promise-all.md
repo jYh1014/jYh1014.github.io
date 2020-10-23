@@ -8,7 +8,7 @@ pin: true
 
 
 ## promise.all
-> 用于将多个 Promise 实例，包装成一个新的 Promise 实例 
+
 ```sh
 const p = Promise.all([p1, p2, p3]);
 ``` 

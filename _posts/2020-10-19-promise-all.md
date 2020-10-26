@@ -3,7 +3,7 @@ title: promise对象的几个方法分析
 author: jyy
 date: 2020-10-19 10:55:00 +0800
 tags: [promise]
-pin: true
+# pin: true
 ---
 
 

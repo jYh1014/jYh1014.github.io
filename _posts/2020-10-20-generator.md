@@ -2,8 +2,8 @@
 title: generator
 author: jyy
 date: 2020-10-20 14:20:00 +0800
-# categories: [Blogging, Tutorial]
 tags: [js]
+# pin: true
 ---
 
 ## iterator遍历器

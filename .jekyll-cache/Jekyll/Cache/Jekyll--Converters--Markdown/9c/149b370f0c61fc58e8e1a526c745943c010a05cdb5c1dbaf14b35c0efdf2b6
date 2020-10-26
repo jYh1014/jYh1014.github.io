@@ -1,0 +1,134 @@
+I"<h2 id="callback">callback</h2>
+
+<blockquote>
+  <p>定义：一个函数作为另一个函数的参数</p>
+</blockquote>
+
+<h2 id="应用场景">应用场景</h2>
+<p>1.传参</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+</pre></td><td class="rouge-code"><pre>
+//1）方法1，利用call解决
+//a.js文件
+<span class="k">function </span>fun2<span class="o">(){</span>
+    console.log<span class="o">(</span>this<span class="o">)</span>
+    this.fun1<span class="o">(</span><span class="s2">"jyy"</span><span class="o">)</span>
+<span class="o">}</span>
+module.exports <span class="o">=</span> fun2
+
+//b.js文件
+
+<span class="nb">let </span>fun2 <span class="o">=</span> require<span class="o">(</span><span class="s2">"./8.callback.js"</span><span class="o">)</span>
+<span class="nb">let </span>obj <span class="o">=</span> <span class="o">{</span>
+  name: <span class="s2">"123"</span>,
+  fun1: <span class="k">function</span><span class="o">(</span>name<span class="o">){</span>
+    obj.name <span class="o">=</span> name
+  <span class="o">}</span>
+<span class="o">}</span>
+//此处用call来更改this指向，不然a文件fun2函数里面的this指向global，并不是obj。
+fun2.call<span class="o">(</span>obj<span class="o">)</span> 
+console.log<span class="o">(</span>obj.name<span class="o">)</span>
+
+//2）方法2,利用回调函数解决
+//a.js文件
+<span class="k">function </span>fun2<span class="o">(</span>callback<span class="o">){</span>
+    callback<span class="o">(</span><span class="s2">"jyy"</span><span class="o">)</span>
+<span class="o">}</span>
+module.exports <span class="o">=</span> fun2
+//b.js文件
+
+<span class="nb">let </span>fun2 <span class="o">=</span> require<span class="o">(</span><span class="s2">"./8.callback.js"</span><span class="o">)</span>
+<span class="nb">let </span>obj <span class="o">=</span> <span class="o">{</span>
+  name: <span class="s2">"123"</span>,
+  fun1: <span class="k">function</span><span class="o">(</span>name<span class="o">){</span>
+    obj.name <span class="o">=</span> name
+  <span class="o">}</span>
+<span class="o">}</span>
+fun2<span class="o">(</span>obj.fun1<span class="o">)</span> 
+console.log<span class="o">(</span>obj.name<span class="o">)</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<p>2.函数的组合</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+</pre></td><td class="rouge-code"><pre> <span class="nb">let </span>say <span class="o">=</span> <span class="o">(</span>...args<span class="o">)</span> <span class="o">=&gt;</span> <span class="o">{</span>
+    console.log<span class="o">(</span><span class="s2">"说话"</span>, ...args<span class="o">)</span><span class="p">;</span>
+  <span class="o">}</span>
+Function.prototype.before <span class="o">=</span> <span class="k">function</span><span class="o">(</span>fn<span class="o">){</span>
+    
+    // this say
+
+    <span class="k">return</span> <span class="o">(</span>...args<span class="o">)</span> <span class="o">=&gt;</span> <span class="o">{</span>
+      fn<span class="o">()</span><span class="p">;</span>
+      this<span class="o">(</span>...args<span class="o">)</span><span class="p">;</span>
+
+    <span class="o">}</span>
+  <span class="o">}</span>
+const newfun <span class="o">=</span> say.before<span class="o">(()</span> <span class="o">=&gt;</span> <span class="o">{</span> 
+    console.log<span class="o">(</span><span class="s1">'你好'</span><span class="o">)</span> <span class="p">;</span>
+<span class="o">})</span>
+
+newfun<span class="o">(</span>1,2,3<span class="o">)</span><span class="p">;</span>
+
+//结果是 你好 说话 123
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+:ET

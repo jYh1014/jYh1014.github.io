@@ -1,7 +1,7 @@
 ---
 title: promise对象的几个方法分析
 author: jyy
-date: 2020-10-19 10:55:00 +0800
+date: 2020-07-19 10:55:00 +0800
 tags: [promise]
 pin: true
 ---

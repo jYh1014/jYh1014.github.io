@@ -1,0 +1,15 @@
+I"�<h2 id="callback">callback</h2>
+
+<blockquote>
+  <p>定义：一个函数作为另一个函数的参数</p>
+</blockquote>
+
+<h2 id="应用场景">应用场景</h2>
+<ul>
+  <li>传参
+```sh
+//a.js文件</li>
+</ul>
+
+<p>```</p>
+:ET

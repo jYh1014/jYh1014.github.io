@@ -1,0 +1,122 @@
+I"@<h2 id="栈">栈</h2>
+
+<blockquote>
+  <p>特点：先进后出</p>
+</blockquote>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+</pre></td> --><td class="rouge-code"><pre>class Stack<span class="o">{</span>
+    constructor<span class="o">(){</span>
+        this.stack <span class="o">=</span> <span class="o">[]</span>
+    <span class="o">}</span>
+    add<span class="o">(</span>ele<span class="o">){</span>
+        this.stack.push<span class="o">(</span>ele<span class="o">)</span>
+    <span class="o">}</span>
+    pop<span class="o">(){</span>
+        this.stack.pop<span class="o">()</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+<span class="nb">let </span>stack <span class="o">=</span> new Stack<span class="o">()</span>
+stack.add<span class="o">(</span>1<span class="o">)</span>
+stack.add<span class="o">(</span>2<span class="o">)</span>
+stack.pop<span class="o">()</span>
+console.log<span class="o">(</span>stack<span class="o">)</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<h2 id="队列">队列</h2>
+
+<blockquote>
+  <p>特点：先进先出</p>
+</blockquote>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+</pre></td> --><td class="rouge-code"><pre>class Queue<span class="o">{</span>
+    constructor<span class="o">(){</span>
+        this.queue <span class="o">=</span> <span class="o">[]</span>
+    <span class="o">}</span>
+    enqueue<span class="o">(</span>ele<span class="o">){</span>
+        this.queue.push<span class="o">(</span>ele<span class="o">)</span>
+    <span class="o">}</span>
+    dequeue<span class="o">(){</span>
+        this.queue.shift<span class="o">()</span>
+    <span class="o">}</span>
+<span class="o">}</span> 
+<span class="nb">let </span>queue <span class="o">=</span> new Queue<span class="o">()</span>
+queue.enqueue<span class="o">(</span>1<span class="o">)</span>
+queue.enqueue<span class="o">(</span>2<span class="o">)</span>
+queue.dequeue<span class="o">()</span>
+console.log<span class="o">(</span>queue<span class="o">)</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<h2 id="链表单向">链表（单向）</h2>
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+</pre></td> --><td class="rouge-code"><pre>class LinkList<span class="o">{</span>
+    constructor<span class="o">(){</span>
+        this.head <span class="o">=</span> null
+        this.length <span class="o">=</span> 0
+    <span class="o">}</span>
+    append<span class="o">(</span>ele<span class="o">){</span>
+        <span class="nb">let </span>node <span class="o">=</span> new Node<span class="o">(</span>ele<span class="o">)</span>
+        <span class="k">if</span><span class="o">(!</span>this.head<span class="o">){</span>
+            this.head <span class="o">=</span> node
+        <span class="o">}</span><span class="k">else</span><span class="o">{</span>
+            <span class="nb">let </span>index <span class="o">=</span> 0 //先把链表的头部拿出来，然后从1开始查找
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+class Node<span class="o">{</span>
+    constructor<span class="o">(</span>ele<span class="o">){</span>
+        this.element <span class="o">=</span> ele
+        this.next <span class="o">=</span> null
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+:ET

@@ -1,4 +1,4 @@
-I"
+I"v
 <div id="tags" class="d-flex flex-wrap ml-xl-2 mr-xl-2">
 
 
@@ -7,11 +7,15 @@
 
 
   <div>
-    <a class="tag" href="/tags/js/">js<span class="text-muted">6</span></a>
+    <a class="tag" href="/tags/js/">js<span class="text-muted">7</span></a>
   </div>
 
   <div>
     <a class="tag" href="/tags/promise/">promise<span class="text-muted">1</span></a>
+  </div>
+
+  <div>
+    <a class="tag" href="/tags/webpack/">webpack<span class="text-muted">1</span></a>
   </div>
 
 

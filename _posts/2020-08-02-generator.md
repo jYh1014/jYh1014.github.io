@@ -47,7 +47,7 @@ ES6 规定，默认的 Iterator 接口部署在数据结构的Symbol.iterator属
 - NodeList 对象
 
 下面是为一个对象添加iterator接口的例子
-```sh
+```js
 let obj = {
   data: [ 'hello', 'world' ],
   [Symbol.iterator]() {
@@ -87,7 +87,7 @@ for(let item of obj){
 Generator 函数是协程在 ES6 的实现，最大特点就是可以交出函数的执行权（即暂停执行）,yield命令是异步两个阶段的分界线。
 
 下面看一个用Generator 函数来执行异步任务的例子：
-```sh
+```js
 let fetch = require('node-fetch');
 
 function* gen(){
@@ -111,7 +111,7 @@ es6文档上指出thunk函数可以用于 Generator 函数的自动流程管理�
 
 > 编译器的“传名调用”实现，是将参数放到一个临时函数之中，再将这个临时函数传入函数体。这个临时函数就叫做 Thunk 函数
 
-```sh
+```js
 function f(m) {
   return m * 2;
 }
@@ -146,7 +146,7 @@ readFileThunk(callback);
 
 ```
 ## Thunkify 模块
-```sh
+```js
 //使用方式：以读取文件为例
 let thunkify = require('thunkify');
 let fs = require('fs');
@@ -184,7 +184,7 @@ function thunkify(fn) {
 ## Generator 函数的流程管理
 > Thunk 函数现在可以用于 Generator 函数的自动流程管理
 
-```sh
+```js
 let fs = require('fs');
 let thunkify = require('thunkify');
 let readFileThunk = thunkify(fs.readFile);
@@ -212,7 +212,7 @@ r1.value(function (err, data) {
 
 ## Thunk 函数的自动流程管理
 
-```sh
+```js
 //基于 Thunk 函数的 Generator 执行器
 function run(fn) {
   let gen = fn();
@@ -246,7 +246,7 @@ run(g);
 
 > 用于 Generator 函数的自动执行，co模块约定，yield命令后面只能是 Thunk 函数或 Promise 对象
 
-```sh
+```js
 const fs = require("fs").promises
 
 function* read() {

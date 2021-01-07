@@ -1,0 +1,101 @@
+I"�<h2 id="vue是一个什么样的框架">vue是一个什么样的框架</h2>
+<blockquote>
+  <p>它借鉴了MVVM框架，但是和他并不完全一样。相同之处都是数据变化视图会更新，视图变化数据会被影响（响应式数据原理）。不同之处是MVVM不能跳过数据去直接更新视图，而vue可以通过操作dom来更新视图</p>
+</blockquote>
+
+<blockquote>
+  <p>MVVM模型的组成部分</p>
+  <ul>
+    <li>model（模型）：模型是指代表真实状态内容的领域模型（面向对象），或指代表内容的数据访问层（以数据为中心）。</li>
+    <li>view（视图）：视图是用户在屏幕上看到的结构、布局和外观（UI）</li>
+    <li>viewModel（视图模型）：</li>
+    <li>binder（绑定器）</li>
+  </ul>
+</blockquote>
+
+<h2 id="1对数据的劫持">1.对数据的劫持</h2>
+<blockquote>
+  <p>主要是依赖Object.defineProperty来实现的。</p>
+</blockquote>
+
+<h4 id="对对象的劫持">对对象的劫持</h4>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+</pre></td> --><td class="rouge-code"><pre>        <span class="kd">let</span> <span class="nx">data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="na">a</span><span class="p">:</span> <span class="p">{</span> <span class="na">b</span><span class="p">:</span> <span class="mi">10</span> <span class="p">}</span>
+        <span class="p">}</span>
+        <span class="nx">observe</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span>
+        <span class="kd">function</span> <span class="nx">observe</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">if</span> <span class="p">(</span><span class="k">typeof</span> <span class="nx">data</span> <span class="o">!==</span> <span class="dl">"</span><span class="s2">object</span><span class="dl">"</span><span class="p">)</span> <span class="p">{</span>
+                <span class="k">return</span> <span class="nx">data</span><span class="p">;</span>
+            <span class="p">}</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nb">Array</span><span class="p">.</span><span class="nx">isArray</span><span class="p">(</span><span class="nx">data</span><span class="p">))</span> <span class="p">{</span>
+                <span class="nx">observeArray</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span> <span class="c1">//观测数组中的对象类型</span>
+            <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+                <span class="nx">walk</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+        <span class="kd">function</span> <span class="nx">observeArray</span><span class="p">(</span><span class="nx">data</span><span class="p">){</span>
+
+        <span class="p">}</span>
+        <span class="kd">function</span> <span class="nx">walk</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span> <span class="p">{</span>
+            <span class="kd">let</span> <span class="nx">keys</span> <span class="o">=</span> <span class="nb">Object</span><span class="p">.</span><span class="nx">keys</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span>
+            <span class="nx">keys</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="nx">key</span> <span class="o">=&gt;</span> <span class="p">{</span>
+                <span class="nx">defineReactive</span><span class="p">(</span><span class="nx">data</span><span class="p">,</span> <span class="nx">key</span><span class="p">,</span> <span class="nx">data</span><span class="p">[</span><span class="nx">key</span><span class="p">])</span>
+            <span class="p">})</span>
+        <span class="p">}</span>
+        <span class="kd">function</span> <span class="nx">defineReactive</span><span class="p">(</span><span class="nx">data</span><span class="p">,</span> <span class="nx">key</span><span class="p">,</span> <span class="nx">value</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nx">observe</span><span class="p">(</span><span class="nx">value</span><span class="p">)</span>
+            <span class="nb">Object</span><span class="p">.</span><span class="nx">defineProperty</span><span class="p">(</span><span class="nx">data</span><span class="p">,</span> <span class="nx">key</span><span class="p">,</span> <span class="p">{</span>
+                <span class="kd">get</span><span class="p">()</span> <span class="p">{</span>
+                    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">`读取了</span><span class="p">${</span><span class="nx">key</span><span class="p">}</span><span class="s2">属性`</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="nx">value</span>
+                <span class="p">},</span>
+                <span class="kd">set</span><span class="p">(</span><span class="nx">newValue</span><span class="p">)</span> <span class="p">{</span>
+                    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">`设置了</span><span class="p">${</span><span class="nx">key</span><span class="p">}</span><span class="s2">属性`</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="nx">newValue</span> <span class="o">==</span> <span class="nx">value</span><span class="p">)</span> <span class="k">return</span>
+                    <span class="nx">value</span> <span class="o">=</span> <span class="nx">newValue</span>
+                <span class="p">}</span>
+            <span class="p">})</span>
+        <span class="p">}</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h4 id="对数组的劫持">对数组的劫持</h4>
+:ET

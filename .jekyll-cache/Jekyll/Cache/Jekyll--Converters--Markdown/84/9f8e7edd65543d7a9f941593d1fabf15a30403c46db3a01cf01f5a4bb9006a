@@ -1,0 +1,25 @@
+I"<h2 id="vue是一个什么样的框架">vue是一个什么样的框架</h2>
+<blockquote>
+  <p>它借鉴了MVVM框架，但是和他并不完全一样。相同之处都是数据变化视图会更新，视图变化数据会被影响（响应式数据原理）。不同之处是MVVM不能跳过数据去直接更新视图，而vue可以通过操作dom来更新视图</p>
+</blockquote>
+
+<blockquote>
+  <p>MVVM模型的组成部分</p>
+  <ul>
+    <li>model（模型）：模型是指代表真实状态内容的领域模型（面向对象），或指代表内容的数据访问层（以数据为中心）。</li>
+    <li>view（视图）：视图是用户在屏幕上看到的结构、布局和外观（UI）</li>
+    <li>viewModel（视图模型）：</li>
+    <li>binder（绑定器）</li>
+  </ul>
+</blockquote>
+
+<h2 id="1对数据的劫持">1.对数据的劫持</h2>
+<blockquote>
+  <p>主要是依赖Object.defineProperty来实现的。</p>
+</blockquote>
+
+<h4 id="对对象的劫持">对对象的劫持</h4>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre>
+</pre></td></tr></tbody></table></code></pre></div></div>
+:ET

@@ -1,0 +1,27 @@
+I"Ð
+<div id="tags" class="d-flex flex-wrap ml-xl-2 mr-xl-2">
+
+
+
+
+
+
+  <div>
+    <a class="tag" href="/tags/js/">js<span class="text-muted">9</span></a>
+  </div>
+
+  <div>
+    <a class="tag" href="/tags/node/">node<span class="text-muted">1</span></a>
+  </div>
+
+  <div>
+    <a class="tag" href="/tags/vue/">vue<span class="text-muted">1</span></a>
+  </div>
+
+  <div>
+    <a class="tag" href="/tags/webpack/">webpack<span class="text-muted">1</span></a>
+  </div>
+
+
+</div>
+:ET

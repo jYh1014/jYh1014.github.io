@@ -1,0 +1,1158 @@
+I"E<h2 id="vue是一个什么样的框架">vue是一个什么样的框架</h2>
+<blockquote>
+  <p>它借鉴了MVVM框架，但是和他并不完全一样。相同之处都是数据变化视图会更新，视图变化数据会被影响（响应式数据原理）。不同之处是MVVM不能跳过数据去直接更新视图，而vue可以通过操作dom来更新视图</p>
+</blockquote>
+
+<blockquote>
+  <p>MVVM模型的组成部分</p>
+  <ul>
+    <li>model（模型）：模型是指代表真实状态内容的领域模型（面向对象），或指代表内容的数据访问层（以数据为中心）。</li>
+    <li>view（视图）：视图是用户在屏幕上看到的结构、布局和外观（UI）</li>
+    <li>viewModel（视图模型）：</li>
+    <li>binder（绑定器）</li>
+  </ul>
+</blockquote>
+
+<blockquote>
+  <p>也就是给我什么样的数据，我就渲染出什么样的页面。如下面的html为例，在我修改data数据时，都能渲染出相应的页面。</p>
+</blockquote>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+</pre></td><td class="rouge-code"><pre><span class="nt">&lt;body&gt;</span>
+    <span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">"app"</span> <span class="na">style=</span><span class="s">"color: red"</span><span class="nt">&gt;</span>
+        
+        {{arr}}
+        
+        <span class="nt">&lt;li&gt;</span> {{school.name}}<span class="nt">&lt;/li&gt;</span>
+        <span class="nt">&lt;li&gt;</span>{{school.age}}<span class="nt">&lt;/li&gt;</span>
+    <span class="nt">&lt;/div&gt;</span>
+    <span class="nt">&lt;script </span><span class="na">src=</span><span class="s">"./dist/umd/vue.js"</span><span class="nt">&gt;&lt;/script&gt;</span>
+    <span class="nt">&lt;script&gt;</span>
+        <span class="kd">let</span> <span class="nx">data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="na">name</span><span class="p">:</span> <span class="dl">"</span><span class="s2">jyy</span><span class="dl">"</span><span class="p">,</span>
+            <span class="na">arr</span><span class="p">:</span> <span class="p">[{</span> <span class="na">a</span><span class="p">:</span> <span class="mi">10</span> <span class="p">},</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
+            <span class="na">school</span><span class="p">:</span> <span class="p">{</span> <span class="na">name</span><span class="p">:</span> <span class="dl">"</span><span class="s2">jyy</span><span class="dl">"</span><span class="p">,</span> <span class="na">age</span><span class="p">:</span> <span class="mi">20</span> <span class="p">}</span>
+        <span class="p">}</span>
+        <span class="kd">let</span> <span class="nx">vm</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Vue</span><span class="p">({</span>
+            <span class="na">el</span><span class="p">:</span> <span class="dl">"</span><span class="s2">#app</span><span class="dl">"</span><span class="p">,</span>
+            <span class="c1">// data: [1,2,3]</span>
+            <span class="na">data</span><span class="p">:</span> <span class="nx">data</span><span class="p">,</span>
+            <span class="nx">created</span><span class="p">()</span> <span class="p">{</span>
+                <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="dl">"</span><span class="s2">my created-----</span><span class="dl">"</span><span class="p">)</span>
+            <span class="p">}</span>
+        <span class="p">})</span>
+      
+        <span class="nx">vm</span><span class="p">.</span><span class="nx">_data</span><span class="p">.</span><span class="nx">name</span> <span class="o">=</span> <span class="dl">"</span><span class="s2">aaaa</span><span class="dl">"</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">vm</span><span class="p">.</span><span class="nx">_data</span><span class="p">)</span>
+      
+    <span class="nt">&lt;/script&gt;</span>
+<span class="nt">&lt;/body&gt;</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<blockquote>
+  <p>想要实现这个效果，必须先知道vue整个的渲染流程：先初始化数据 =》将模版进行编译 =》 生成render函数 =》 生成虚拟节点 =》生成真实的dom =》放到页面上</p>
+</blockquote>
+
+<h2 id="1初始化数据对数据的劫持">1.初始化数据（对数据的劫持）</h2>
+<blockquote>
+  <p>当我们访问或设置数据的属性的时候，都会触发相对应的函数。也就是说修改数据时，要知道数据是不是做了修改，然后再更新视图。这个就是劫持操作。</p>
+</blockquote>
+
+<blockquote>
+  <p>主要是依赖Object.defineProperty来实现的。</p>
+</blockquote>
+
+<blockquote>
+  <p>下面看一个完整的vue初始化代码</p>
+</blockquote>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+</pre></td><td class="rouge-code"><pre><span class="kd">function</span> <span class="nx">Vue</span><span class="p">(</span><span class="nx">options</span><span class="p">){</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_init</span><span class="p">(</span><span class="nx">options</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="nx">initMixin</span><span class="p">(</span><span class="nx">Vue</span><span class="p">)</span> <span class="c1">//用插件的方式来扩展方法。</span>
+
+<span class="kd">function</span> <span class="nx">initMixin</span><span class="p">(</span><span class="nx">Vue</span><span class="p">){</span>
+    <span class="nx">Vue</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">_init</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">options</span><span class="p">){</span>
+        <span class="kd">let</span> <span class="nx">vm</span> <span class="o">=</span> <span class="k">this</span>
+        <span class="nx">vm</span><span class="p">.</span><span class="nx">$options</span> <span class="o">=</span> <span class="nx">options</span>
+        <span class="nx">initState</span><span class="p">(</span><span class="nx">vm</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="kd">function</span> <span class="nx">initState</span><span class="p">(</span><span class="nx">vm</span><span class="p">){</span>
+    <span class="kd">let</span> <span class="nx">options</span> <span class="o">=</span> <span class="nx">vm</span><span class="p">.</span><span class="nx">$options</span>
+    <span class="k">if</span><span class="p">(</span><span class="nx">options</span><span class="p">.</span><span class="nx">data</span><span class="p">){</span>
+        <span class="nx">initData</span><span class="p">(</span><span class="nx">vm</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kd">function</span> <span class="nx">initData</span><span class="p">(</span><span class="nx">vm</span><span class="p">){</span>
+    <span class="kd">let</span> <span class="nx">data</span> <span class="o">=</span> <span class="nx">vm</span><span class="p">.</span><span class="nx">$options</span><span class="p">.</span><span class="nx">data</span>
+    <span class="nx">vm</span><span class="p">.</span><span class="nx">_data</span> <span class="o">=</span> <span class="nx">data</span> <span class="o">=</span> <span class="k">typeof</span> <span class="nx">data</span> <span class="o">===</span> <span class="dl">"</span><span class="s2">function</span><span class="dl">"</span><span class="p">?</span><span class="nx">data</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="nx">vm</span><span class="p">):</span><span class="nx">data</span>
+    <span class="nx">observe</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="kd">function</span> <span class="nx">observe</span><span class="p">(</span><span class="nx">data</span><span class="p">){</span>
+    <span class="k">if</span><span class="p">(</span><span class="k">typeof</span> <span class="nx">data</span> <span class="o">!=</span> <span class="dl">"</span><span class="s2">object</span><span class="dl">"</span><span class="p">){</span>
+        <span class="k">return</span><span class="p">;</span> <span class="c1">//只对对象和数组做监测</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nb">Array</span><span class="p">.</span><span class="nx">isArray</span><span class="p">(</span><span class="nx">data</span><span class="p">))</span> <span class="p">{</span>
+        <span class="nx">observeArray</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span> <span class="c1">//观测数组中的对象类型</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="nx">walk</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kd">function</span> <span class="nx">walk</span><span class="p">(</span><span class="nx">data</span><span class="p">){</span>
+    <span class="kd">let</span> <span class="nx">keys</span> <span class="o">=</span> <span class="nb">Object</span><span class="p">.</span><span class="nx">keys</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span>
+    <span class="nx">keys</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="nx">key</span> <span class="o">=&gt;</span> <span class="p">{</span>
+        <span class="nx">defineReactive</span><span class="p">(</span><span class="nx">data</span><span class="p">,</span> <span class="nx">key</span><span class="p">,</span> <span class="nx">data</span><span class="p">[</span><span class="nx">key</span><span class="p">])</span>
+    <span class="p">})</span>
+<span class="p">}</span>
+ <span class="kd">function</span> <span class="nx">observeArray</span><span class="p">(</span><span class="nx">data</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">data</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="nx">item</span> <span class="o">=&gt;</span> <span class="p">{</span>
+        <span class="nx">observe</span><span class="p">(</span><span class="nx">item</span><span class="p">)</span>
+    <span class="p">})</span>
+<span class="p">}</span>
+<span class="kd">function</span> <span class="nx">defineReactive</span><span class="p">(</span><span class="nx">data</span><span class="p">,</span> <span class="nx">key</span><span class="p">,</span> <span class="nx">value</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">observe</span><span class="p">(</span><span class="nx">value</span><span class="p">)</span> <span class="c1">//递归</span>
+    <span class="nb">Object</span><span class="p">.</span><span class="nx">defineProperty</span><span class="p">(</span><span class="nx">data</span><span class="p">,</span> <span class="nx">key</span><span class="p">,</span> <span class="p">{</span>
+        <span class="kd">get</span><span class="p">()</span> <span class="p">{</span>
+            <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">`读取了</span><span class="p">${</span><span class="nx">key</span><span class="p">}</span><span class="s2">属性`</span><span class="p">)</span>
+            <span class="k">return</span> <span class="nx">value</span>
+        <span class="p">},</span>
+        <span class="kd">set</span><span class="p">(</span><span class="nx">newValue</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">`设置了</span><span class="p">${</span><span class="nx">key</span><span class="p">}</span><span class="s2">属性`</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nx">newValue</span> <span class="o">==</span> <span class="nx">value</span><span class="p">)</span> <span class="k">return</span>
+            <span class="nx">value</span> <span class="o">=</span> <span class="nx">newValue</span>
+        <span class="p">}</span>
+    <span class="p">})</span>
+<span class="p">}</span>
+<span class="c1">//此时在html中加上vm._data.name = "aaa"就会触发set函数执行，也就是说得到了劫持。</span>
+<span class="c1">//但是 vm._data.name={a:10}并不会触发set，我们需要修改一下defineReactive方法的代码。</span>
+<span class="kd">function</span> <span class="nx">defineReactive</span><span class="p">(</span><span class="nx">data</span><span class="p">,</span> <span class="nx">key</span><span class="p">,</span> <span class="nx">value</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">observe</span><span class="p">(</span><span class="nx">value</span><span class="p">)</span>
+    <span class="nb">Object</span><span class="p">.</span><span class="nx">defineProperty</span><span class="p">(</span><span class="nx">data</span><span class="p">,</span> <span class="nx">key</span><span class="p">,</span> <span class="p">{</span>
+        <span class="kd">get</span><span class="p">()</span> <span class="p">{</span>
+            <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">`读取了</span><span class="p">${</span><span class="nx">key</span><span class="p">}</span><span class="s2">属性`</span><span class="p">)</span>
+            <span class="k">return</span> <span class="nx">value</span>
+        <span class="p">},</span>
+        <span class="kd">set</span><span class="p">(</span><span class="nx">newValue</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">`设置了</span><span class="p">${</span><span class="nx">key</span><span class="p">}</span><span class="s2">属性`</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nx">newValue</span> <span class="o">==</span> <span class="nx">value</span><span class="p">)</span> <span class="k">return</span>
+            <span class="nx">observe</span><span class="p">(</span><span class="nx">newValue</span><span class="p">)</span> <span class="c1">//需要对重新赋值的数据也做监测</span>
+            <span class="nx">value</span> <span class="o">=</span> <span class="nx">newValue</span>
+        <span class="p">}</span>
+    <span class="p">})</span>
+<span class="p">}</span>
+<span class="c1">//到此为止，对对象类型的劫持已经完成，但是对数组类型的劫持还有欠缺，在vue中，只对数组的这些方法做了监测，push、pop、shift</span>
+<span class="c1">//、unshift、reverse、sort、splice，这些方法都能修改原始数组。所以，在数组调用这些方法的时候，我们也要做到劫持。我们需要对数组的原始方法做一些扩展。</span>
+<span class="kd">let</span> <span class="nx">oldArrayMethods</span> <span class="o">=</span> <span class="nb">Array</span><span class="p">.</span><span class="nx">prototype</span>
+<span class="kd">let</span> <span class="nx">arrayMethods</span> <span class="o">=</span> <span class="nb">Object</span><span class="p">.</span><span class="nx">create</span><span class="p">(</span><span class="nx">oldArrayMethods</span><span class="p">);</span> <span class="c1">//继承 arrayMethods.__proto__ == oldArrayMethods</span>
+<span class="kd">let</span> <span class="nx">methods</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="dl">"</span><span class="s2">push</span><span class="dl">"</span><span class="p">,</span>
+    <span class="dl">"</span><span class="s2">pop</span><span class="dl">"</span><span class="p">,</span>
+    <span class="dl">"</span><span class="s2">shift</span><span class="dl">"</span><span class="p">,</span>
+    <span class="dl">"</span><span class="s2">unshift</span><span class="dl">"</span><span class="p">,</span>
+    <span class="dl">"</span><span class="s2">sort</span><span class="dl">"</span><span class="p">,</span>
+    <span class="dl">"</span><span class="s2">reverse</span><span class="dl">"</span><span class="p">,</span>
+    <span class="dl">"</span><span class="s2">splice</span><span class="dl">"</span>
+<span class="p">]</span>
+<span class="nx">methods</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="nx">method</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="nx">arrayMethods</span><span class="p">[</span><span class="nx">method</span><span class="p">]</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(...</span><span class="nx">args</span><span class="p">){</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="dl">"</span><span class="s2">数组方法拦截</span><span class="dl">"</span><span class="p">)</span>
+        <span class="kd">let</span> <span class="nx">result</span> <span class="o">=</span> <span class="nx">oldArrayMethods</span><span class="p">[</span><span class="nx">method</span><span class="p">].</span><span class="nx">apply</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="nx">args</span><span class="p">)</span>
+        <span class="k">switch</span> <span class="p">(</span><span class="nx">method</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">case</span> <span class="dl">"</span><span class="s2">push</span><span class="dl">"</span><span class="p">:</span> <span class="c1">//追加</span>
+            <span class="k">case</span> <span class="dl">"</span><span class="s2">unshift</span><span class="dl">"</span><span class="p">:</span>
+                <span class="nx">inserted</span> <span class="o">=</span> <span class="nx">args</span><span class="p">;</span>
+                <span class="k">break</span><span class="p">;</span>
+            <span class="k">case</span> <span class="dl">"</span><span class="s2">splice</span><span class="dl">"</span><span class="p">:</span>
+                <span class="nx">inserted</span> <span class="o">=</span> <span class="nx">args</span><span class="p">.</span><span class="nx">slice</span><span class="p">(</span><span class="mi">2</span><span class="p">);</span>
+                <span class="k">break</span><span class="p">;</span>
+            <span class="nl">default</span><span class="p">:</span>
+                <span class="k">break</span><span class="p">;</span>
+        <span class="p">}</span>
+        <span class="c1">//对数组新增的值也要进行监测，需要调用observeArray方法</span>
+        <span class="nx">observeArray</span><span class="p">(</span><span class="nx">inserted</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nx">result</span>
+    <span class="p">}</span>
+<span class="p">})</span>
+
+<span class="c1">//vue2对数组监测的弊端在官网上也有说明，以下两种目前还不能做到劫持</span>
+<span class="c1">//1.当你利用索引直接设置一个数组项时</span>
+<span class="c1">//2.当你修改数组的长度时</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="2将模版编译成render函数">2.将模版编译成render函数</h2>
+<ul>
+  <li>第一步：生成ast树</li>
+  <li>第二步：优化（静态节点可以跳过）</li>
+  <li>第三步：将优化后的AST树转换为可执行的代码</li>
+</ul>
+
+<div class="language-html highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+</pre></td><td class="rouge-code"><pre>//比如这段html
+<span class="nt">&lt;div</span> <span class="na">id=</span><span class="s">"app"</span> <span class="na">style=</span><span class="s">{color:</span> <span class="err">"</span><span class="na">red</span><span class="err">"}</span><span class="nt">&gt;</span>hello<span class="nt">&lt;span&gt;</span>hello<span class="nt">&lt;/span</span><span class="err">&lt;/div</span><span class="nt">&gt;</span>
+//我们需要将其编译成
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td><td class="rouge-code"><pre><span class="nx">_c</span><span class="p">(</span><span class="dl">'</span><span class="s1">div</span><span class="dl">'</span><span class="p">,{</span><span class="na">id</span><span class="p">:</span><span class="dl">'</span><span class="s1">app</span><span class="dl">'</span><span class="p">,</span><span class="na">style</span><span class="p">:{</span><span class="na">color</span><span class="p">:</span><span class="dl">'</span><span class="s1">red</span><span class="dl">'</span><span class="p">}},</span><span class="nx">_v</span><span class="p">(</span><span class="dl">'</span><span class="s1">hello</span><span class="dl">'</span><span class="o">+</span><span class="nx">_s</span><span class="p">(</span><span class="nx">name</span><span class="p">)),</span><span class="nx">_c</span><span class="p">(</span><span class="dl">'</span><span class="s1">span</span><span class="dl">'</span><span class="p">,</span><span class="kc">null</span><span class="p">,</span><span class="nx">_v</span><span class="p">(</span><span class="dl">'</span><span class="s1">hello</span><span class="dl">'</span><span class="p">)))</span><span class="err">。</span>
+<span class="nx">最终得到的render函数大概就是以下这种形式</span>
+<span class="kd">function</span> <span class="nx">anonymous</span><span class="p">()</span> <span class="p">{</span>
+    <span class="kd">with</span><span class="p">(</span><span class="k">this</span><span class="p">){</span><span class="k">return</span> <span class="nx">_c</span><span class="p">(</span><span class="dl">'</span><span class="s1">div</span><span class="dl">'</span><span class="p">,{</span><span class="na">id</span><span class="p">:</span><span class="dl">'</span><span class="s1">app</span><span class="dl">'</span><span class="p">,</span><span class="na">style</span><span class="p">:{</span><span class="na">color</span><span class="p">:</span><span class="dl">'</span><span class="s1">red</span><span class="dl">'</span><span class="p">}},</span><span class="nx">_v</span><span class="p">(</span><span class="dl">'</span><span class="s1">hello</span><span class="dl">'</span><span class="o">+</span><span class="nx">_s</span><span class="p">(</span><span class="nx">name</span><span class="p">)),</span><span class="nx">_c</span><span class="p">(</span><span class="dl">'</span><span class="s1">span</span><span class="dl">'</span><span class="p">,</span><span class="kc">null</span><span class="p">,</span><span class="nx">_v</span><span class="p">(</span><span class="dl">'</span><span class="s1">hello</span><span class="dl">'</span><span class="p">)))}</span>
+<span class="p">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<blockquote>
+  <p>其中涉及两个过程，1:需要将html代码转换成ast语法树 2:通过这棵树重新生成虚拟节点</p>
+</blockquote>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+184
+185
+186
+187
+188
+189
+190
+191
+192
+193
+194
+195
+</pre></td><td class="rouge-code"><pre><span class="c1">//将_init方法修改一下</span>
+ <span class="nx">Vue</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">_init</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">options</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">let</span> <span class="nx">vm</span> <span class="o">=</span> <span class="k">this</span>
+    <span class="nx">vm</span><span class="p">.</span><span class="nx">$options</span><span class="o">=</span><span class="nx">options</span>
+    <span class="nx">initState</span><span class="p">(</span><span class="nx">vm</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">vm</span><span class="p">.</span><span class="nx">$options</span><span class="p">.</span><span class="nx">el</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">vm</span><span class="p">.</span><span class="nx">$mount</span><span class="p">(</span><span class="nx">vm</span><span class="p">.</span><span class="nx">$options</span><span class="p">.</span><span class="nx">el</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+ <span class="nx">Vue</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">$mount</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">el</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">const</span> <span class="nx">vm</span> <span class="o">=</span> <span class="k">this</span>
+    <span class="kd">const</span> <span class="nx">options</span> <span class="o">=</span> <span class="nx">vm</span><span class="p">.</span><span class="nx">$options</span>
+    <span class="nx">el</span> <span class="o">=</span> <span class="nb">document</span><span class="p">.</span><span class="nx">querySelector</span><span class="p">(</span><span class="nx">el</span><span class="p">)</span>
+    <span class="nx">vm</span><span class="p">.</span><span class="nx">$el</span> <span class="o">=</span> <span class="nx">el</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">options</span><span class="p">.</span><span class="nx">render</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kd">let</span> <span class="nx">template</span> <span class="o">=</span> <span class="nx">options</span><span class="p">.</span><span class="nx">template</span>
+        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">template</span> <span class="o">&amp;&amp;</span> <span class="nx">el</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nx">template</span> <span class="o">=</span> <span class="nx">el</span><span class="p">.</span><span class="nx">outerHTML</span>
+        <span class="p">}</span>
+        <span class="c1">//将模版编译成render函数</span>
+        <span class="kd">const</span> <span class="nx">render</span> <span class="o">=</span> <span class="nx">compilerToFunctions</span><span class="p">(</span><span class="nx">template</span><span class="p">)</span>
+        <span class="nx">options</span><span class="p">.</span><span class="nx">render</span> <span class="o">=</span> <span class="nx">render</span>
+    <span class="p">}</span>
+    <span class="c1">//然后挂载这个组件</span>
+    <span class="c1">//todo。。。</span>
+<span class="p">}</span>
+
+<span class="kd">function</span> <span class="nx">compilerToFunctions</span><span class="p">(){</span>
+    <span class="kd">let</span> <span class="nx">ast</span> <span class="o">=</span> <span class="nx">parseHTML</span><span class="p">(</span><span class="nx">template</span><span class="p">)</span> <span class="c1">//将html代码转换成ast语法树</span>
+    <span class="kd">let</span> <span class="nx">code</span> <span class="o">=</span> <span class="nx">generate</span><span class="p">(</span><span class="nx">ast</span><span class="p">)</span> <span class="c1">//通过这棵树重新生成虚拟节点</span>
+    <span class="kd">let</span> <span class="nx">render</span> <span class="o">=</span> <span class="k">new</span> <span class="nb">Function</span><span class="p">(</span><span class="s2">`with(this){return </span><span class="p">${</span><span class="nx">code</span><span class="p">}</span><span class="s2">}`</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nx">render</span>
+<span class="p">}</span>
+
+<span class="c1">//以下是根据正则匹配标签的过程。</span>
+<span class="kd">const</span> <span class="nx">ncname</span> <span class="o">=</span> <span class="dl">"</span><span class="s2">[a-zA-Z_][</span><span class="se">\\</span><span class="s2">-</span><span class="se">\\</span><span class="s2">.0-9a-zA-Z]*</span><span class="dl">"</span>  <span class="c1">//标签名</span>
+<span class="kd">const</span> <span class="nx">qnameCapture</span> <span class="o">=</span> <span class="s2">`((?:</span><span class="p">${</span><span class="nx">ncname</span><span class="p">}</span><span class="s2">\\:)?</span><span class="p">${</span><span class="nx">ncname</span><span class="p">}</span><span class="s2">)`</span>  <span class="c1">//&lt;my:xx&gt;</span>
+<span class="kd">const</span> <span class="nx">startTagOpen</span> <span class="o">=</span> <span class="k">new</span> <span class="nb">RegExp</span><span class="p">(</span><span class="s2">`^&lt;</span><span class="p">${</span><span class="nx">qnameCapture</span><span class="p">}</span><span class="s2">`</span><span class="p">)</span>
+<span class="kd">const</span> <span class="nx">endTag</span> <span class="o">=</span> <span class="k">new</span> <span class="nb">RegExp</span><span class="p">(</span><span class="s2">`^&lt;\\/</span><span class="p">${</span><span class="nx">qnameCapture</span><span class="p">}</span><span class="s2">[^&gt;]*&gt;`</span><span class="p">)</span>
+<span class="kd">const</span> <span class="nx">attribute</span> <span class="o">=</span> <span class="sr">/^</span><span class="se">\s</span><span class="sr">*</span><span class="se">([^\s</span><span class="sr">"'&lt;&gt;</span><span class="se">\/</span><span class="sr">=</span><span class="se">]</span><span class="sr">+</span><span class="se">)(?:\s</span><span class="sr">*</span><span class="se">(</span><span class="sr">=</span><span class="se">)\s</span><span class="sr">*</span><span class="se">(?:</span><span class="sr">"</span><span class="se">([^</span><span class="sr">"</span><span class="se">]</span><span class="sr">*</span><span class="se">)</span><span class="sr">"+|'</span><span class="se">([^</span><span class="sr">'</span><span class="se">]</span><span class="sr">*</span><span class="se">)</span><span class="sr">'+|</span><span class="se">([^\s</span><span class="sr">"'=&lt;&gt;`</span><span class="se">]</span><span class="sr">+</span><span class="se">)))?</span><span class="sr">/</span>
+<span class="kd">const</span> <span class="nx">startTagClose</span> <span class="o">=</span> <span class="sr">/^</span><span class="se">\s</span><span class="sr">*</span><span class="se">(\/?)</span><span class="sr">&gt;/</span><span class="p">;</span>
+<span class="kd">const</span> <span class="nx">defaultTagRE</span> <span class="o">=</span> <span class="sr">/</span><span class="se">\{\{((?:</span><span class="sr">.|</span><span class="se">\r?\n)</span><span class="sr">+</span><span class="se">?)\}\}</span><span class="sr">/g</span>
+<span class="kd">function</span> <span class="nx">parseHTML</span><span class="p">(</span><span class="nx">html</span><span class="p">){</span>
+        <span class="kd">function</span> <span class="nx">createASTElement</span><span class="p">(</span><span class="nx">tagName</span><span class="p">,</span> <span class="nx">attrs</span><span class="p">){</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="na">tag</span><span class="p">:</span> <span class="nx">tagName</span><span class="p">,</span>
+            <span class="nx">attrs</span><span class="p">,</span>
+            <span class="na">parent</span><span class="p">:</span> <span class="kc">null</span><span class="p">,</span>
+            <span class="na">children</span><span class="p">:</span> <span class="p">[],</span>
+            <span class="na">type</span><span class="p">:</span> <span class="mi">1</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="kd">let</span> <span class="nx">root</span><span class="p">;</span>
+    <span class="kd">let</span> <span class="nx">currentParent</span><span class="p">;</span>
+    <span class="kd">let</span> <span class="nx">stack</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="kd">function</span> <span class="nx">start</span><span class="p">(</span><span class="nx">tagName</span><span class="p">,</span> <span class="nx">attrs</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kd">let</span> <span class="nx">element</span> <span class="o">=</span> <span class="nx">createASTElement</span><span class="p">(</span><span class="nx">tagName</span><span class="p">,</span><span class="nx">attrs</span><span class="p">)</span>
+        <span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="nx">root</span><span class="p">){</span>
+            <span class="nx">root</span> <span class="o">=</span> <span class="nx">element</span>
+        <span class="p">}</span>
+        <span class="nx">currentParent</span> <span class="o">=</span> <span class="nx">element</span>
+        <span class="nx">stack</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">element</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="kd">function</span> <span class="nx">end</span><span class="p">(</span><span class="nx">tagName</span><span class="p">)</span> <span class="p">{</span> 
+        <span class="kd">let</span> <span class="nx">element</span> <span class="o">=</span> <span class="nx">stack</span><span class="p">.</span><span class="nx">pop</span><span class="p">()</span>
+        <span class="nx">currentParent</span> <span class="o">=</span> <span class="nx">stack</span><span class="p">[</span><span class="nx">stack</span><span class="p">.</span><span class="nx">length</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span><span class="p">(</span><span class="nx">currentParent</span><span class="p">){</span>
+            <span class="nx">element</span><span class="p">.</span><span class="nx">parent</span> <span class="o">=</span> <span class="nx">currentParent</span>
+            <span class="nx">currentParent</span><span class="p">.</span><span class="nx">children</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">element</span><span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="kd">function</span> <span class="nx">chars</span><span class="p">(</span><span class="nx">text</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">text</span> <span class="o">=</span> <span class="nx">text</span><span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/</span><span class="se">\s</span><span class="sr">/g</span><span class="p">,</span><span class="dl">""</span><span class="p">);</span>
+        <span class="k">if</span><span class="p">(</span><span class="nx">text</span><span class="p">){</span>
+            <span class="nx">currentParent</span><span class="p">.</span><span class="nx">children</span><span class="p">.</span><span class="nx">push</span><span class="p">({</span>
+                <span class="na">type</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span>
+                <span class="nx">text</span>
+            <span class="p">})</span>
+        <span class="p">}</span>
+     <span class="p">}</span>
+    <span class="k">while</span> <span class="p">(</span><span class="nx">html</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kd">let</span> <span class="nx">textEnd</span> <span class="o">=</span> <span class="nx">html</span><span class="p">.</span><span class="nx">indexOf</span><span class="p">(</span><span class="dl">"</span><span class="s2">&lt;</span><span class="dl">"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nx">textEnd</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+            <span class="c1">//肯定是标签</span>
+            <span class="kd">const</span> <span class="nx">startTagMatch</span> <span class="o">=</span> <span class="nx">parseStartTag</span><span class="p">();</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nx">startTagMatch</span><span class="p">)</span> <span class="p">{</span>
+                <span class="nx">start</span><span class="p">(</span><span class="nx">startTagMatch</span><span class="p">.</span><span class="nx">tagName</span><span class="p">,</span> <span class="nx">startTagMatch</span><span class="p">.</span><span class="nx">attrs</span><span class="p">)</span>
+                <span class="k">continue</span><span class="p">;</span>
+            <span class="p">}</span>
+            <span class="c1">// console.log(html)</span>
+            <span class="kd">const</span> <span class="nx">endTagMatch</span> <span class="o">=</span> <span class="nx">html</span><span class="p">.</span><span class="nx">match</span><span class="p">(</span><span class="nx">endTag</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nx">endTagMatch</span><span class="p">)</span> <span class="p">{</span>
+                <span class="nx">advance</span><span class="p">(</span><span class="nx">endTagMatch</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">length</span><span class="p">)</span>
+                <span class="nx">end</span><span class="p">(</span><span class="nx">endTagMatch</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="k">continue</span><span class="p">;</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+        <span class="kd">let</span> <span class="nx">text</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nx">textEnd</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nx">text</span> <span class="o">=</span> <span class="nx">html</span><span class="p">.</span><span class="nx">substring</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nx">textEnd</span><span class="p">)</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nx">text</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nx">advance</span><span class="p">(</span><span class="nx">text</span><span class="p">.</span><span class="nx">length</span><span class="p">)</span>
+            <span class="nx">chars</span><span class="p">(</span><span class="nx">text</span><span class="p">)</span>
+        <span class="p">}</span>
+        <span class="c1">// break;</span>
+        
+    <span class="p">}</span>
+    <span class="kd">function</span> <span class="nx">advance</span><span class="p">(</span><span class="nx">n</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">html</span> <span class="o">=</span> <span class="nx">html</span><span class="p">.</span><span class="nx">substring</span><span class="p">(</span><span class="nx">n</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="kd">function</span> <span class="nx">parseStartTag</span><span class="p">()</span> <span class="p">{</span>
+        <span class="kd">const</span> <span class="nx">start</span> <span class="o">=</span> <span class="nx">html</span><span class="p">.</span><span class="nx">match</span><span class="p">(</span><span class="nx">startTagOpen</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nx">start</span><span class="p">)</span> <span class="p">{</span>
+            <span class="kd">const</span> <span class="nx">match</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="na">tagName</span><span class="p">:</span> <span class="nx">start</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                <span class="na">attrs</span><span class="p">:</span> <span class="p">[]</span>
+            <span class="p">}</span>
+            <span class="nx">advance</span><span class="p">(</span><span class="nx">start</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">length</span><span class="p">)</span>
+            <span class="c1">//如果直接是闭合标签，那说明没有属性</span>
+            <span class="kd">let</span> <span class="nx">end</span><span class="p">;</span>
+            <span class="kd">let</span> <span class="nx">attr</span><span class="p">;</span>
+            <span class="k">while</span> <span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="nx">end</span> <span class="o">=</span> <span class="nx">html</span><span class="p">.</span><span class="nx">match</span><span class="p">(</span><span class="nx">startTagClose</span><span class="p">))</span> <span class="o">&amp;&amp;</span> <span class="p">(</span><span class="nx">attr</span> <span class="o">=</span> <span class="nx">html</span><span class="p">.</span><span class="nx">match</span><span class="p">(</span><span class="nx">attribute</span><span class="p">)))</span> <span class="p">{</span>
+
+                <span class="nx">match</span><span class="p">.</span><span class="nx">attrs</span><span class="p">.</span><span class="nx">push</span><span class="p">({</span> <span class="na">name</span><span class="p">:</span> <span class="nx">attr</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="na">value</span><span class="p">:</span> <span class="nx">attr</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">||</span> <span class="nx">attr</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">||</span> <span class="nx">attr</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span> <span class="p">})</span>
+                <span class="nx">advance</span><span class="p">(</span><span class="nx">attr</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">length</span><span class="p">)</span>
+                <span class="c1">// break;</span>
+            <span class="p">}</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nx">end</span><span class="p">)</span> <span class="p">{</span>
+                <span class="nx">advance</span><span class="p">(</span><span class="nx">end</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">length</span><span class="p">)</span>
+                <span class="k">return</span> <span class="nx">match</span>
+            <span class="p">}</span>
+            <span class="c1">// console.log(html)</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="nx">root</span>
+<span class="p">}</span>
+
+<span class="c1">//以下是根据ast来生成render函数</span>
+<span class="c1">//&lt;div id="app" style={color: "red"}&gt;hello&lt;span&gt;hello&lt;/span&lt;/div&gt;</span>
+<span class="c1">//_c('div',{id:'app',style:{color:'red'}},_v('hello'+_s(name)),_c('span',null,_v('hello')))</span>
+<span class="kd">const</span> <span class="nx">defaultTagRE</span> <span class="o">=</span> <span class="sr">/</span><span class="se">\{\{((?:</span><span class="sr">.|</span><span class="se">\r?\n)</span><span class="sr">+</span><span class="se">?)\}\}</span><span class="sr">/g</span>
+<span class="kd">function</span> <span class="nx">genProps</span><span class="p">(</span><span class="nx">attrs</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">let</span> <span class="nx">str</span> <span class="o">=</span> <span class="dl">''</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kd">let</span> <span class="nx">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="o">&lt;</span> <span class="nx">attrs</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kd">let</span> <span class="nx">attr</span> <span class="o">=</span> <span class="nx">attrs</span><span class="p">[</span><span class="nx">i</span><span class="p">]</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nx">attr</span><span class="p">.</span><span class="nx">name</span> <span class="o">===</span> <span class="dl">'</span><span class="s1">style</span><span class="dl">'</span><span class="p">)</span> <span class="p">{</span>
+            <span class="kd">let</span> <span class="nx">obj</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="nx">attr</span><span class="p">.</span><span class="nx">value</span><span class="p">.</span><span class="nx">split</span><span class="p">(</span><span class="dl">"</span><span class="s2">;</span><span class="dl">"</span><span class="p">).</span><span class="nx">forEach</span><span class="p">(</span><span class="nx">item</span> <span class="o">=&gt;</span> <span class="p">{</span>
+                <span class="kd">let</span> <span class="p">[</span><span class="nx">key</span><span class="p">,</span> <span class="nx">value</span><span class="p">]</span> <span class="o">=</span> <span class="nx">item</span><span class="p">.</span><span class="nx">split</span><span class="p">(</span><span class="dl">"</span><span class="s2">:</span><span class="dl">"</span><span class="p">)</span>
+                <span class="nx">obj</span><span class="p">[</span><span class="nx">key</span><span class="p">]</span> <span class="o">=</span> <span class="nx">value</span>
+            <span class="p">})</span>
+            <span class="nx">attr</span><span class="p">.</span><span class="nx">value</span> <span class="o">=</span> <span class="nx">obj</span>
+        <span class="p">}</span>
+        <span class="nx">str</span> <span class="o">+=</span> <span class="s2">`</span><span class="p">${</span><span class="nx">attr</span><span class="p">.</span><span class="nx">name</span><span class="p">}</span><span class="s2">:</span><span class="p">${</span><span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">attr</span><span class="p">.</span><span class="nx">value</span><span class="p">)}</span><span class="s2">,`</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="s2">`{</span><span class="p">${</span><span class="nx">str</span><span class="p">.</span><span class="nx">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)}</span><span class="s2">}`</span>
+<span class="p">}</span>
+<span class="kd">function</span> <span class="nx">gen</span><span class="p">(</span><span class="nx">node</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">node</span><span class="p">.</span><span class="nx">type</span> <span class="o">===</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="nx">generate</span><span class="p">(</span><span class="nx">node</span><span class="p">)</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="kd">let</span> <span class="nx">text</span> <span class="o">=</span> <span class="nx">node</span><span class="p">.</span><span class="nx">text</span>
+        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">defaultTagRE</span><span class="p">.</span><span class="nx">test</span><span class="p">(</span><span class="nx">text</span><span class="p">))</span> <span class="p">{</span>
+            <span class="k">return</span> <span class="s2">`_v(</span><span class="p">${</span><span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">text</span><span class="p">)}</span><span class="s2">)`</span>
+        <span class="p">}</span>
+        <span class="kd">let</span> <span class="nx">tokens</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="kd">let</span> <span class="nx">lastIndex</span> <span class="o">=</span> <span class="nx">defaultTagRE</span><span class="p">.</span><span class="nx">lastIndex</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="kd">let</span> <span class="nx">match</span><span class="p">,</span> <span class="nx">index</span>
+        <span class="k">while</span> <span class="p">(</span><span class="nx">match</span> <span class="o">=</span> <span class="nx">defaultTagRE</span><span class="p">.</span><span class="nx">exec</span><span class="p">(</span><span class="nx">text</span><span class="p">))</span> <span class="p">{</span>
+            <span class="nx">index</span> <span class="o">=</span> <span class="nx">match</span><span class="p">.</span><span class="nx">index</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nx">index</span> <span class="o">&gt;</span> <span class="nx">lastIndex</span><span class="p">)</span> <span class="p">{</span>
+                <span class="nx">tokens</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">text</span><span class="p">.</span><span class="nx">slice</span><span class="p">(</span><span class="nx">lastIndex</span><span class="p">,</span> <span class="nx">index</span><span class="p">)))</span>
+            <span class="p">}</span>
+            <span class="nx">tokens</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="s2">`_s(</span><span class="p">${</span><span class="nx">match</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="nx">trim</span><span class="p">()}</span><span class="s2">)`</span><span class="p">)</span>
+            <span class="nx">lastIndex</span> <span class="o">=</span> <span class="nx">index</span> <span class="o">+</span> <span class="nx">match</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">length</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nx">lastIndex</span> <span class="o">&lt;</span> <span class="nx">text</span><span class="p">.</span><span class="nx">length</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nx">tokens</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">text</span><span class="p">.</span><span class="nx">slice</span><span class="p">(</span><span class="nx">lastIndex</span><span class="p">)))</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="s2">`_v(</span><span class="p">${</span><span class="nx">tokens</span><span class="p">.</span><span class="nx">join</span><span class="p">(</span><span class="dl">"</span><span class="s2">+</span><span class="dl">"</span><span class="p">)}</span><span class="s2">)`</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="kd">function</span> <span class="nx">genChildren</span><span class="p">(</span><span class="nx">el</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">let</span> <span class="nx">children</span> <span class="o">=</span> <span class="nx">el</span><span class="p">.</span><span class="nx">children</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">children</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="nx">children</span><span class="p">.</span><span class="nx">map</span><span class="p">(</span><span class="nx">child</span> <span class="o">=&gt;</span> <span class="nx">gen</span><span class="p">(</span><span class="nx">child</span><span class="p">)).</span><span class="nx">join</span><span class="p">(</span><span class="dl">"</span><span class="s2">,</span><span class="dl">"</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="kd">function</span> <span class="nx">generate</span><span class="p">(</span><span class="nx">el</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">let</span> <span class="nx">children</span> <span class="o">=</span> <span class="nx">genChildren</span><span class="p">(</span><span class="nx">el</span><span class="p">)</span>
+    <span class="kd">let</span> <span class="nx">code</span> <span class="o">=</span> <span class="s2">`_c('</span><span class="p">${</span><span class="nx">el</span><span class="p">.</span><span class="nx">tag</span><span class="p">}</span><span class="s2">',</span><span class="p">${</span><span class="nx">el</span><span class="p">.</span><span class="nx">attrs</span><span class="p">.</span><span class="nx">length</span> <span class="p">?</span> <span class="s2">`</span><span class="p">${</span><span class="nx">genProps</span><span class="p">(</span><span class="nx">el</span><span class="p">.</span><span class="nx">attrs</span><span class="p">)}</span><span class="s2">`</span> <span class="p">:</span> <span class="dl">'</span><span class="s1">undefined</span><span class="dl">'</span><span class="p">}${</span><span class="nx">children</span> <span class="p">?</span> <span class="s2">`,</span><span class="p">${</span><span class="nx">children</span><span class="p">}</span><span class="s2">`</span> <span class="p">:</span> <span class="dl">""</span>
+        <span class="p">}</span><span class="s2">)`</span>
+    <span class="k">return</span> <span class="nx">code</span>
+<span class="p">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="3依赖收集">3.依赖收集</h2>
+<ul>
+  <li>利用Obeject.defineProperty()来监听属性变动，将需要observe的数据对象进行递归遍历，包括子属性对象的属性，都加上 setter和getter</li>
+  <li>当给这个对象的某个值赋值，就会触发setter，进而监听到数据变化</li>
+  <li>监听到变化之后通知订阅者，需要实现一个消息订阅器Dep，通过维护一个数组subs，用来收集订阅者，数据变动触发notify，再调用订阅者watcher的update方法
+    <blockquote>
+      <p>并不是每次数据修改就会立刻调用watcher的update方法，首先会调用一个queueWatcher方法，将这些watcher先添加到一个队列中，相同的watcher只会保留一个。最终在nextTick方法中执行</p>
+    </blockquote>
+  </li>
+</ul>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+182
+183
+</pre></td><td class="rouge-code"><pre><span class="kd">function</span> <span class="nx">defineReactive</span><span class="p">(</span><span class="nx">data</span><span class="p">,</span> <span class="nx">key</span><span class="p">,</span> <span class="nx">value</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">//闭包</span>
+    <span class="kd">let</span> <span class="nx">childDep</span> <span class="o">=</span> <span class="nx">observe</span><span class="p">(</span><span class="nx">value</span><span class="p">)</span>
+    <span class="kd">let</span> <span class="nx">dep</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Dep</span><span class="p">()</span> <span class="c1">//每个属性都有一个dep</span>
+    <span class="nb">Object</span><span class="p">.</span><span class="nx">defineProperty</span><span class="p">(</span><span class="nx">data</span><span class="p">,</span> <span class="nx">key</span><span class="p">,</span> <span class="p">{</span>
+        <span class="kd">get</span><span class="p">()</span> <span class="p">{</span> <span class="c1">//依赖收集</span>
+            <span class="k">if</span><span class="p">(</span><span class="nx">Dep</span><span class="p">.</span><span class="nx">target</span><span class="p">){</span>
+                <span class="nx">dep</span><span class="p">.</span><span class="nx">depend</span><span class="p">()</span>
+                <span class="k">if</span><span class="p">(</span><span class="nx">childDep</span><span class="p">){</span>
+                    <span class="nx">childDep</span><span class="p">.</span><span class="nx">dep</span><span class="p">.</span><span class="nx">depend</span><span class="p">()</span> <span class="c1">//数组或者对象存起来了渲染watcher</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+            <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">`读取了</span><span class="p">${</span><span class="nx">key</span><span class="p">}</span><span class="s2">属性`</span><span class="p">)</span>
+            <span class="k">return</span> <span class="nx">value</span>
+        <span class="p">},</span>
+        <span class="kd">set</span><span class="p">(</span><span class="nx">newValue</span><span class="p">)</span> <span class="p">{</span> <span class="c1">//依赖更新</span>
+            <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">`设置了</span><span class="p">${</span><span class="nx">key</span><span class="p">}</span><span class="s2">属性`</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nx">newValue</span> <span class="o">==</span> <span class="nx">value</span><span class="p">)</span> <span class="k">return</span>
+            <span class="nx">observe</span><span class="p">(</span><span class="nx">newValue</span><span class="p">)</span>
+            <span class="nx">value</span> <span class="o">=</span> <span class="nx">newValue</span>
+            <span class="nx">dep</span><span class="p">.</span><span class="nx">notify</span><span class="p">()</span> <span class="c1">//触发更新</span>
+        <span class="p">}</span>
+    <span class="p">})</span>
+<span class="p">}</span>
+
+<span class="kd">let</span> <span class="nx">id</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="kd">class</span> <span class="nx">Dep</span> <span class="p">{</span>
+    <span class="kd">constructor</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">subs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">id</span> <span class="o">=</span> <span class="nx">id</span><span class="o">++</span>
+    <span class="p">}</span>
+    <span class="nx">depend</span><span class="p">()</span> <span class="p">{</span>
+        <span class="nx">Dep</span><span class="p">.</span><span class="nx">target</span><span class="p">.</span><span class="nx">addDep</span><span class="p">(</span><span class="k">this</span><span class="p">)</span>  <span class="c1">//实现双向记忆dep和watcher互相记忆</span>
+        <span class="c1">// this.subs.push(Dep.target)</span>
+        <span class="c1">// console.log(this.subs)</span>
+    <span class="p">}</span>
+    <span class="nx">addSub</span><span class="p">(</span><span class="nx">watcher</span><span class="p">){</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">subs</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">watcher</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="nx">notify</span><span class="p">()</span> <span class="p">{</span>
+        <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">subs</span><span class="p">)</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">subs</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="nx">watcher</span> <span class="o">=&gt;</span> <span class="nx">watcher</span><span class="p">.</span><span class="nx">update</span><span class="p">())</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="nx">Dep</span><span class="p">.</span><span class="nx">target</span> <span class="o">=</span> <span class="kc">null</span>
+<span class="k">export</span> <span class="kd">function</span> <span class="nx">pushTarget</span><span class="p">(</span><span class="nx">watcher</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">Dep</span><span class="p">.</span><span class="nx">target</span> <span class="o">=</span> <span class="nx">watcher</span>
+<span class="p">}</span>
+
+<span class="k">export</span> <span class="kd">function</span> <span class="nx">popTarget</span><span class="p">()</span> <span class="p">{</span>
+    <span class="nx">Dep</span><span class="p">.</span><span class="nx">target</span> <span class="o">=</span> <span class="kc">null</span>
+<span class="p">}</span>
+
+<span class="k">import</span> <span class="p">{</span> <span class="nx">popTarget</span><span class="p">,</span> <span class="nx">pushTarget</span> <span class="p">}</span> <span class="k">from</span> <span class="dl">"</span><span class="s2">./dep</span><span class="dl">"</span>
+<span class="k">import</span> <span class="p">{</span> <span class="nx">nextTick</span> <span class="p">}</span> <span class="k">from</span> <span class="dl">"</span><span class="s2">../util</span><span class="dl">"</span>
+<span class="kd">let</span> <span class="nx">id</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="kd">class</span> <span class="nx">Watcher</span> <span class="p">{</span>
+    <span class="kd">constructor</span><span class="p">(</span><span class="nx">vm</span><span class="p">,</span> <span class="nx">exprOrFn</span><span class="p">,</span> <span class="nx">cb</span><span class="p">,</span> <span class="nx">options</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">vm</span> <span class="o">=</span> <span class="nx">vm</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">user</span> <span class="o">=</span> <span class="nx">options</span><span class="p">.</span><span class="nx">user</span> <span class="c1">//用户watcher</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">isWatcher</span> <span class="o">=</span> <span class="k">typeof</span> <span class="nx">options</span> <span class="o">==</span> <span class="dl">"</span><span class="s2">boolean</span><span class="dl">"</span> <span class="c1">//渲染watcher</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">exprOrFn</span> <span class="o">=</span> <span class="nx">exprOrFn</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">cb</span> <span class="o">=</span> <span class="nx">cb</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">options</span> <span class="o">=</span> <span class="nx">options</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">id</span> <span class="o">=</span> <span class="nx">id</span><span class="o">++</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">deps</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">depsId</span> <span class="o">=</span> <span class="k">new</span> <span class="nb">Set</span><span class="p">()</span>
+        <span class="k">if</span> <span class="p">(</span><span class="k">typeof</span> <span class="nx">exprOrFn</span> <span class="o">===</span> <span class="dl">"</span><span class="s2">function</span><span class="dl">"</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">this</span><span class="p">.</span><span class="nx">getter</span> <span class="o">=</span> <span class="nx">exprOrFn</span>
+        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+            <span class="k">this</span><span class="p">.</span><span class="nx">getter</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+                <span class="kd">let</span> <span class="nx">path</span> <span class="o">=</span> <span class="nx">exprOrFn</span><span class="p">.</span><span class="nx">split</span><span class="p">(</span><span class="dl">"</span><span class="s2">.</span><span class="dl">"</span><span class="p">)</span>
+                <span class="kd">let</span> <span class="nx">obj</span> <span class="o">=</span> <span class="nx">vm</span>
+                <span class="k">for</span> <span class="p">(</span><span class="kd">let</span> <span class="nx">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">i</span> <span class="o">&lt;</span> <span class="nx">path</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span> <span class="nx">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+                    <span class="nx">obj</span> <span class="o">=</span> <span class="nx">obj</span><span class="p">[</span><span class="nx">path</span><span class="p">[</span><span class="nx">i</span><span class="p">]]</span>
+                <span class="p">}</span>
+                <span class="k">return</span> <span class="nx">obj</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">value</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="kd">get</span><span class="p">()</span>
+    <span class="p">}</span>
+    <span class="nx">addDep</span><span class="p">(</span><span class="nx">dep</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kd">let</span> <span class="nx">id</span> <span class="o">=</span> <span class="nx">dep</span><span class="p">.</span><span class="nx">id</span>
+        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">depsId</span><span class="p">.</span><span class="nx">has</span><span class="p">(</span><span class="nx">id</span><span class="p">))</span> <span class="p">{</span>
+            <span class="k">this</span><span class="p">.</span><span class="nx">deps</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">dep</span><span class="p">)</span>
+            <span class="k">this</span><span class="p">.</span><span class="nx">depsId</span><span class="p">.</span><span class="nx">add</span><span class="p">(</span><span class="nx">id</span><span class="p">)</span>
+            <span class="nx">dep</span><span class="p">.</span><span class="nx">addSub</span><span class="p">(</span><span class="k">this</span><span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="kd">get</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">debugger</span>
+        <span class="nx">pushTarget</span><span class="p">(</span><span class="k">this</span><span class="p">)</span>
+        <span class="kd">let</span> <span class="nx">result</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">getter</span><span class="p">()</span>
+        <span class="nx">popTarget</span><span class="p">()</span>
+        
+        <span class="k">return</span> <span class="nx">result</span>
+    <span class="p">}</span>
+    <span class="nx">run</span><span class="p">()</span> <span class="p">{</span>
+        <span class="k">debugger</span>
+        <span class="kd">let</span> <span class="nx">newValue</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="kd">get</span><span class="p">()</span>
+        <span class="kd">let</span> <span class="nx">oldValue</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">value</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">value</span> <span class="o">=</span> <span class="nx">newValue</span>
+        <span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">user</span><span class="p">)</span> <span class="p">{</span>
+            <span class="k">this</span><span class="p">.</span><span class="nx">cb</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">vm</span><span class="p">,</span> <span class="nx">newValue</span><span class="p">,</span> <span class="nx">oldValue</span><span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="nx">update</span><span class="p">()</span> <span class="p">{</span>
+        <span class="c1">//这里不能每次一更改数据就调用，</span>
+        <span class="nx">queueWatcher</span><span class="p">(</span><span class="k">this</span><span class="p">)</span>
+        <span class="c1">// this.get()</span>
+        <span class="c1">// this.cb.call(this.vm)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="cm">/**
+ *  批处理操作，等所有的同步任务完成后再执行
+ * 相同的watcher只保留一个
+ */</span>
+
+<span class="kd">function</span> <span class="nx">flushSchedulerQueue</span><span class="p">()</span> <span class="p">{</span>
+    <span class="nx">queue</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="nx">watcher</span> <span class="o">=&gt;</span> <span class="p">{</span>
+        <span class="nx">watcher</span><span class="p">.</span><span class="nx">run</span><span class="p">()</span>
+        <span class="c1">// if (watcher.isWatcher) {</span>
+        <span class="c1">//     watcher.cb()</span>
+        <span class="c1">// }</span>
+
+    <span class="p">})</span>
+    <span class="nx">has</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="nx">queue</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="nx">pending</span> <span class="o">=</span> <span class="kc">false</span>
+<span class="p">}</span>
+<span class="kd">let</span> <span class="nx">queue</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="kd">let</span> <span class="nx">has</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="kd">let</span> <span class="nx">pending</span> <span class="o">=</span> <span class="kc">false</span>
+<span class="kd">function</span> <span class="nx">queueWatcher</span><span class="p">(</span><span class="nx">watcher</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">let</span> <span class="nx">id</span> <span class="o">=</span> <span class="nx">watcher</span><span class="p">.</span><span class="nx">id</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">has</span><span class="p">[</span><span class="nx">id</span><span class="p">])</span> <span class="p">{</span>
+        <span class="nx">queue</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">watcher</span><span class="p">)</span>
+        <span class="nx">has</span><span class="p">[</span><span class="nx">id</span><span class="p">]</span> <span class="o">=</span> <span class="kc">true</span>
+        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">pending</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nx">nextTick</span><span class="p">(</span><span class="nx">flushSchedulerQueue</span><span class="p">)</span>
+            <span class="nx">pending</span> <span class="o">=</span> <span class="kc">true</span> <span class="c1">//防抖</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="c1">//nextTick原理涉及到微任务和宏任务</span>
+<span class="kd">let</span> <span class="nx">callbacks</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="kd">let</span> <span class="nx">pending</span> <span class="o">=</span> <span class="kc">false</span>
+<span class="kd">let</span> <span class="nx">flushCallbacks</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="nx">callbacks</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="nx">cb</span> <span class="o">=&gt;</span> <span class="nx">cb</span><span class="p">())</span>
+    <span class="nx">pending</span> <span class="o">=</span> <span class="kc">false</span>
+    <span class="nx">callbacks</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="p">}</span>
+<span class="kd">let</span> <span class="nx">timerFunc</span><span class="p">;</span>
+<span class="k">if</span> <span class="p">(</span><span class="nb">Promise</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">timerFunc</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+        <span class="nb">Promise</span><span class="p">.</span><span class="nx">resolve</span><span class="p">().</span><span class="nx">then</span><span class="p">(</span><span class="nx">flushCallbacks</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="nx">setImmediate</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">timerFunc</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+        <span class="nx">setImmediate</span><span class="p">(</span><span class="nx">flushCallbacks</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="nx">MutationObserver</span><span class="p">)</span> <span class="p">{</span> <span class="c1">//可以监控dom变化，监控完毕后异步更新</span>
+    <span class="kd">let</span> <span class="nx">observe</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">MutationObserver</span><span class="p">(</span><span class="nx">flushCallbacks</span><span class="p">)</span>
+    <span class="kd">let</span> <span class="nx">textNode</span> <span class="o">=</span> <span class="nb">document</span><span class="p">.</span><span class="nx">createTextNode</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="nx">observe</span><span class="p">.</span><span class="nx">observe</span><span class="p">(</span><span class="nx">textNode</span><span class="p">,</span> <span class="p">{</span> <span class="na">characterData</span><span class="p">:</span> <span class="kc">true</span> <span class="p">})</span>
+    <span class="nx">timerFunc</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+        <span class="nx">textNode</span><span class="p">.</span><span class="nx">textContent</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="p">}</span>
+<span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="nx">timerFunc</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+        <span class="nx">setTimeout</span><span class="p">(</span><span class="nx">flushCallbacks</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="k">export</span> <span class="kd">function</span> <span class="nx">nextTick</span><span class="p">(</span><span class="nx">cb</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">debugger</span>
+    <span class="nx">callbacks</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">cb</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">pending</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nx">timerFunc</span><span class="p">()</span> <span class="c1">//异步</span>
+        <span class="nx">pending</span> <span class="o">=</span> <span class="kc">true</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<h2 id="4virturl-dom">4.virturl dom</h2>
+<blockquote>
+  <p>Virtual DOM 其实就是一棵以 JavaScript 对象( VNode 节点)作为基础的树，用对象属性来描述节点，实际上它只是一层对真实 DOM 的抽象。最终可以通过一系列操作使这棵树映射到真实环境上。</p>
+</blockquote>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+</pre></td><td class="rouge-code"><pre><span class="c1">//一个完整的vnode节点包含的信息</span>
+<span class="p">{</span>
+    <span class="nl">tag</span><span class="p">:</span> <span class="dl">"</span><span class="s2">div</span><span class="dl">"</span><span class="p">,</span> <span class="c1">//节点的标签</span>
+    <span class="nx">el</span><span class="p">:</span> <span class="dl">"</span><span class="s2">div#app</span><span class="dl">"</span><span class="p">,</span> <span class="c1">//对真实节点的引用</span>
+    <span class="nx">text</span><span class="p">:</span> <span class="kc">null</span><span class="p">,</span> <span class="c1">//如果是文本节点，对应文本节点的textContent</span>
+    <span class="nx">data</span><span class="p">:</span> <span class="kc">null</span><span class="p">,</span> <span class="c1">//属性</span>
+    <span class="nx">children</span><span class="p">:</span> <span class="p">[]</span> <span class="c1">//自节点</span>
+<span class="p">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<h2 id="5dom-diff">5.dom diff</h2>
+<blockquote>
+  <p>主要是新旧虚拟节点做对比来进行更新。先同级进行比较，再比较子节点。</p>
+  <h4 id="1先判断是否是相同标签如果不相同则直接替换否则进入具体对比">1.先判断是否是相同标签，如果不相同，则直接替换，否则进入具体对比</h4>
+</blockquote>
+
+<p><img src="/assets/img/sample/aaa.png" alt="hello" /></p>
+:ET

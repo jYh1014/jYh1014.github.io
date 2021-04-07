@@ -1,0 +1,50 @@
+I"<	<p><strong>1.模块化发展历程</strong></p>
+<blockquote>
+  <p>命名空间模式 -》 自执行函数 -》commonjs -》amd -》umd -》cmd -》esm</p>
+</blockquote>
+
+<p><strong>2.为什么需要模块化</strong><br />
+1.团队多人协作，需要引用别人的代码
+2.项目交接，我们在阅读和重构别人的代码
+3.不同的环境，环境变量不同</p>
+
+<p>基于以上场景，当前js模块化主要有以下几个目的：
+1.防止污染全局作用域
+2.代码复用性和可维护性
+3.功能代码松耦合
+4.解决依赖关系不明显的问题</p>
+
+<p><strong>3.命名空间模式</strong></p>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+</pre></td> --><td class="rouge-code"><pre><span class="kd">var</span> <span class="nx">mathUtils1</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="na">add</span><span class="p">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">x</span><span class="p">,</span> <span class="nx">y</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="nx">x</span> <span class="o">+</span> <span class="nx">y</span><span class="p">;</span>
+    <span class="p">},</span>
+<span class="p">}</span>
+
+<span class="kd">var</span> <span class="nx">mathUtils2</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="na">add</span><span class="p">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">x</span><span class="p">,</span> <span class="nx">y</span><span class="p">,</span> <span class="nx">z</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="nx">x</span> <span class="o">+</span> <span class="nx">y</span> <span class="o">+</span> <span class="nx">z</span><span class="p">;</span>
+    <span class="p">},</span>
+<span class="p">}</span>
+
+<span class="nx">mathUtils</span><span class="p">.</span><span class="nx">add</span><span class="p">();</span>
+<span class="nx">mathUtils</span><span class="p">.</span><span class="nx">square</span><span class="p">();</span>
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+:ET

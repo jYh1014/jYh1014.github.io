@@ -1,0 +1,11 @@
+I"w<p><strong>1.模块化发展历程</strong></p>
+<blockquote>
+  <p>命名空间模式 -》 自执行函数 -》commonjs -》amd -》umd -》cmd -》esm</p>
+</blockquote>
+
+<p><strong>2.为什么需要模块化</strong><br />
+1.团队多人协作，需要引用别人的代码
+2.项目交接，我们在阅读和重构别人的代码
+3.不同的环境，环境变量不同</p>
+
+:ET

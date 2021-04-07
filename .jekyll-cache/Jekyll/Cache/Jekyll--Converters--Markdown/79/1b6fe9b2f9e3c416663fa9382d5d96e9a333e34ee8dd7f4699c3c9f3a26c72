@@ -1,0 +1,44 @@
+I"p<p><strong>1.模块化发展历程</strong></p>
+<blockquote>
+  <p>命名空间模式 -》 自执行函数 -》commonjs -》amd -》umd -》cmd -》esm</p>
+</blockquote>
+
+<p><strong>2.为什么需要模块化</strong><br />
+1.团队多人协作，需要引用别人的代码
+2.项目交接，我们在阅读和重构别人的代码
+3.不同的环境，环境变量不同</p>
+
+<p>基于以上场景，当前js模块化主要有以下几个目的：
+1.防止污染全局作用域
+2.代码复用性和可维护性
+3.功能代码松耦合
+4.解决依赖关系不明显的问题</p>
+
+<p><strong>3.命名空间模式</strong></p>
+
+<blockquote>
+  <p>这种方式”污染”了全局变量，这样的写法会暴露所有模块内的成员，内部状态可以被外部改写
+```js
+var mathUtils1 = {
+    add: function(x, y) {
+        return x + y;
+    }
+}</p>
+</blockquote>
+
+<p>var mathUtils2 = {
+    add: function(x, y, z) {
+        return x + y + z;
+    }
+}</p>
+
+<p>mathUtils.add();
+mathUtils.square();</p>
+
+<p>```
+<strong>4.自执行函数模式</strong></p>
+<blockquote>
+  <p>可以达到不暴露私有成员的目的</p>
+</blockquote>
+
+:ET

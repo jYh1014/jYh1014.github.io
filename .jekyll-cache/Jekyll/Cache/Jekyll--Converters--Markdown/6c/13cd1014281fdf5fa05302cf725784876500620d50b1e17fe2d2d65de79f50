@@ -1,0 +1,12 @@
+I"9<h2 id="cookie">cookie</h2>
+
+<blockquote>
+  <p>定义：是在客户端上存储的一个简单的文本文件。这个文件与特定的 Web 网站关联在一起, 保存了该客户机访问这个Web 网站时的信息。</p>
+</blockquote>
+
+<p>cookie有以下几个属性</p>
+<ul>
+  <li>value属性：设置的cookie的值</li>
+  <li>Expires：设置Cookie的生存期。有两种存储类型的Cookie：会话性与持久性。Expires属性缺省时，为会话性Cookie，仅保存在客户端浏览器内存中，并在用户关闭浏览器时失效；</li>
+</ul>
+:ET

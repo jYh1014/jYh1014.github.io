@@ -1,0 +1,34 @@
+I"<h2 id="cookie">cookie</h2>
+
+<blockquote>
+  <p>定义：是在客户端上存储的一个简单的文本文件。这个文件与特定的 Web 网站关联在一起, 保存了该客户机访问这个Web 网站时的信息。
+同域的网站浏览器默认会自动携带cookie，子域和主域也不能共享cookie，可以设置domain属性为基础主域后才能实现cookie共享。
+比如www.baidu.com和b.baidu.com不能共享cookie，可以设置domain为baidu.com就能实现共享</p>
+</blockquote>
+
+<p>cookie有以下几个属性</p>
+<ul>
+  <li>value属性：设置的cookie的值</li>
+  <li>Expires：设置Cookie的生存期。有两种存储类型的Cookie：会话性与持久性。Expires属性缺省时，为会话性Cookie，仅保存在客户端浏览器内存中，并在用户关闭浏览器时失效；持久性Cookie会保存在用户的硬盘中，直至生存期到或用户直接在网页中单击“注销”等按钮结束会话时才会失效。</li>
+  <li>Path：定义了Web站点上可以访问该Cookie的目录。</li>
+  <li>Domain：指定了可以访问该 Cookie 的域。</li>
+  <li>HTTPOnly：用于防止客户端脚本通过document.cookie属性访问Cookie，有助于保护Cookie不被跨站脚本攻击窃取或篡改。值是true的话，客户端就不能读写cookie，只有服务端可以读写。</li>
+  <li>Secure：指定是否使用HTTPS安全协议发送Cookie</li>
+</ul>
+
+<p>客户端对cookie的设置通过document.cookie
+cookie特点</p>
+<ul>
+  <li>浏览器一般存放cookie大小有限制，请求头的大小也有限制，每个cookie的大小也有限制</li>
+</ul>
+
+<h2 id="session">session</h2>
+
+<blockquote>
+  <p>session是存储在服务端的。</p>
+</blockquote>
+
+<h2 id="localstorage">localStorage</h2>
+
+<h2 id="sessionstorage">sessionStorage</h2>
+:ET

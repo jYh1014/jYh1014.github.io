@@ -1,0 +1,30 @@
+I"?<h2 id="监控分类">监控分类</h2>
+<ul>
+  <li>性能监控</li>
+  <li>数据监控</li>
+  <li>异常监控</li>
+</ul>
+
+<h2 id="衡量性能的指标时间监控">衡量性能的指标（时间监控）</h2>
+<ul>
+  <li>Resource timing Performance API</li>
+</ul>
+
+<h2 id="资源监控">资源监控</h2>
+
+<ul>
+  <li>performance.getEntriesByType(“resource”)</li>
+</ul>
+
+<h2 id="ajax请求监控">ajax请求监控</h2>
+
+<ul>
+  <li>重写 send和open方法进行拦截</li>
+</ul>
+
+<h2 id="前端代码异常">前端代码异常</h2>
+
+<ul>
+  <li>window.onerror</li>
+</ul>
+:ET

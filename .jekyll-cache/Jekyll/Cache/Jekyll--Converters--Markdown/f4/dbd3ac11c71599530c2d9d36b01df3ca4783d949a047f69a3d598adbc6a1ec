@@ -1,0 +1,5 @@
+I"<h2 id="xss">xss</h2>
+<blockquote>
+  <p>跨站脚本攻击：往Web页面里插入恶意Script代码，当用户浏览该页之时，嵌入其中Web里面的Script代码会被执行，从而达到恶意攻击用户的目的。img标签里面也能植入恶意代码。</p>
+</blockquote>
+:ET

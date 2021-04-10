@@ -1,0 +1,9 @@
+I"<h2 id="浅拷贝">浅拷贝</h2>
+<blockquote>
+  <p>会创建一个新对象，该对象会完全复制原始对象，如果属性是基础类型，就复制的值，如果属性是引用类型，就复制的地址。</p>
+</blockquote>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><td class="rouge-gutter gl"><pre class="lineno">1
+</pre></td><td class="rouge-code"><pre>
+</pre></td></tr></tbody></table></code></pre></div></div>
+:ET

@@ -1,0 +1,6 @@
+I"<h2 id="浅拷贝">浅拷贝</h2>
+<blockquote>
+  <p>会创建一个新对象，该对象会完全复制原始对象，如果属性是基础类型，就复制的值，如果属性是引用类型，就复制的地址。
+Object.assign,Array.prototype.concat(),</p>
+</blockquote>
+:ET

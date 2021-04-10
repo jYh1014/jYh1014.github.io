@@ -1,0 +1,6 @@
+I"�<h2 id="浅拷贝">浅拷贝</h2>
+<blockquote>
+  <p>会创建一个新对象，该对象会完全复制原始对象，如果属性是基础类型，就复制的值，如果属性是引用类型，就复制的地址。
+Object.assign,Array.prototype.concat(),Array.prototype.slice()也都是浅拷贝。Array的slice和concat方法不修改原数组，只会返回一个浅复制了原数组中的元素的一个新数组</p>
+</blockquote>
+:ET

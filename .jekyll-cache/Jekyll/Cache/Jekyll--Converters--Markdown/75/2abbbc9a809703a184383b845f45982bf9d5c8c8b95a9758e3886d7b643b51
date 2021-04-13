@@ -1,4 +1,4 @@
-I"�<h2 id="cookie">cookie</h2>
+I"<h2 id="cookie">cookie</h2>
 
 <blockquote>
   <p>定义：是在客户端上存储的一个简单的文本文件。这个文件与特定的 Web 网站关联在一起, 保存了该客户机访问这个Web 网站时的信息。
@@ -16,8 +16,9 @@
   <li>Secure：指定是否使用HTTPS安全协议发送Cookie</li>
 </ul>
 
-<p>客户端对cookie的设置通过document.cookie
-cookie特点</p>
+<p>客户端对cookie的设置通过document.cookie</p>
+
+<p>cookie特点</p>
 <ul>
   <li>浏览器一般存放cookie大小有限制，请求头的大小也有限制，每个cookie的大小也有限制</li>
 </ul>

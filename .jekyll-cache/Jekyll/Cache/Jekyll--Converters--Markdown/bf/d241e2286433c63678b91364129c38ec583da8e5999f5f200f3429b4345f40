@@ -1,0 +1,149 @@
+I"o)<h2 id="为什么需要防抖和节流">为什么需要防抖和节流</h2>
+<blockquote>
+  <p>比如用户进行sroll和resize等行为的时候，会导致绑定的回调函数频繁执行（如果回调函数里大量操作dom，卡顿会更加严重），接着页面会不停的重新渲染，会大大加重浏览器的负担。</p>
+</blockquote>
+
+<h3 id="防抖">防抖</h3>
+<blockquote>
+  <p>在规定时间阀值内，回调函数只执行一次，如果在规定时间内再次触发该事件，则清空之前的定时器，重写开启一个定时器，等到该行为的空闲时间大于规定时间则定时器执行并执行其中的回调函数。</p>
+</blockquote>
+
+<h4 id="应用场景">应用场景</h4>
+
+<ul>
+  <li>调整浏览器窗口大小的onresize事件，只需要在用户最后一次拖动完成后一段事件内执行就行，不需要频繁的执行。</li>
+  <li>文本编辑器实时保存，当无任何更改操作一秒后进行保存</li>
+  <li>各种按钮的频繁点击会导致多次请求，也要防抖。</li>
+</ul>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+</pre></td> --><td class="rouge-code"><pre><span class="o">&lt;</span><span class="nx">body</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="nx">button</span> <span class="nx">id</span><span class="o">=</span><span class="dl">"</span><span class="s2">btn</span><span class="dl">"</span><span class="o">&gt;</span><span class="nx">快速点击</span><span class="o">&lt;</span><span class="sr">/button</span><span class="err">&gt;
+</span><span class="o">&lt;</span><span class="sr">/body</span><span class="err">&gt;
+</span><span class="o">&lt;</span><span class="nx">script</span><span class="o">&gt;</span>
+
+<span class="o">&lt;</span><span class="sr">/script</span><span class="err">&gt;
+</span><span class="kd">function</span> <span class="nx">logger</span><span class="p">(){</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="dl">"</span><span class="s2">logger</span><span class="dl">"</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="kd">function</span> <span class="nx">debounce</span><span class="p">(</span><span class="nx">fn</span><span class="p">,</span> <span class="nx">wait</span><span class="p">,</span> <span class="nx">immediate</span><span class="p">){</span>
+    <span class="c1">//immediate代表第一次是否立即执行</span>
+    <span class="kd">let</span> <span class="nx">timeout</span>
+    <span class="k">return</span> <span class="kd">function</span><span class="p">(...</span><span class="nx">args</span><span class="p">){</span>
+        <span class="nx">clearTimeout</span><span class="p">(</span><span class="nx">timeout</span><span class="p">)</span>
+        <span class="k">if</span><span class="p">(</span><span class="nx">immediate</span><span class="p">){</span>
+            <span class="kd">let</span> <span class="nx">callNow</span> <span class="o">=</span> <span class="o">!</span><span class="nx">timeout</span>
+            <span class="k">if</span><span class="p">(</span><span class="nx">callNow</span><span class="p">)</span> <span class="nx">fn</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span><span class="k">this</span><span class="p">,</span><span class="nx">args</span><span class="p">)</span>
+        <span class="p">}</span>
+        <span class="nx">timeout</span> <span class="o">=</span> <span class="nx">setTimeout</span><span class="p">(()</span><span class="o">=&gt;</span><span class="p">{</span>
+        <span class="nx">fn</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span><span class="k">this</span><span class="p">,</span><span class="nx">args</span><span class="p">)</span>
+        <span class="nx">timeout</span> <span class="o">=</span> <span class="kc">null</span>
+    <span class="p">},</span><span class="nx">wait</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="nx">btn</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="dl">"</span><span class="s2">click</span><span class="dl">"</span><span class="p">,</span> <span class="nx">debounce</span><span class="p">(</span><span class="nx">logger</span><span class="p">,</span> <span class="mi">2000</span><span class="p">,</span> <span class="kc">true</span><span class="p">))</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h3 id="节流">节流</h3>
+<blockquote>
+  <p>在规定的时间阀值内，频繁的触发事件，则只有一次会执行。</p>
+</blockquote>
+
+<h4 id="应用场景-1">应用场景</h4>
+
+<ul>
+  <li>监听滚动事件，获取位置或者请求数据等，需要节流。</li>
+  <li>input 框实时搜索并发送请求（也可做防抖）</li>
+</ul>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+</pre></td> --><td class="rouge-code"><pre><span class="kd">function</span> <span class="nx">logger</span><span class="p">(){</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="dl">"</span><span class="s2">logger</span><span class="dl">"</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="kd">function</span> <span class="nx">throttle</span><span class="p">(</span><span class="nx">fn</span><span class="p">,</span> <span class="nx">wait</span><span class="p">,</span> <span class="nx">options</span> <span class="o">=</span> <span class="p">{}){</span>
+    <span class="kd">let</span> <span class="nx">timeout</span>
+    <span class="kd">let</span> <span class="nx">previous</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">return</span> <span class="kd">function</span><span class="p">(...</span><span class="nx">args</span><span class="p">){</span>
+        <span class="kd">let</span> <span class="nx">now</span> <span class="o">=</span> <span class="nb">Date</span><span class="p">.</span><span class="nx">now</span><span class="p">()</span>
+        <span class="k">if</span><span class="p">(</span><span class="nx">options</span><span class="p">.</span><span class="nx">leading</span> <span class="o">===</span> <span class="kc">false</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="nx">previous</span><span class="p">)</span> <span class="nx">previous</span> <span class="o">=</span> <span class="nx">now</span>
+        <span class="kd">let</span> <span class="nx">remaining</span> <span class="o">=</span> <span class="nx">wait</span> <span class="o">-</span> <span class="p">(</span><span class="nx">now</span> <span class="o">-</span> <span class="nx">previous</span><span class="p">)</span>
+        <span class="k">if</span><span class="p">(</span><span class="nx">remaining</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">){</span>
+            <span class="k">if</span><span class="p">(</span><span class="nx">timeout</span><span class="p">){</span>
+                <span class="nx">clearTImeout</span><span class="p">(</span><span class="nx">timeout</span><span class="p">)</span>
+                <span class="nx">timout</span> <span class="o">=</span> <span class="kc">null</span>
+            <span class="p">}</span>
+            <span class="nx">fn</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span><span class="k">this</span><span class="p">,</span><span class="nx">args</span><span class="p">)</span>
+            <span class="nx">previous</span> <span class="o">=</span> <span class="nx">now</span>
+        <span class="p">}</span><span class="k">else</span> <span class="k">if</span><span class="p">(</span><span class="o">!</span><span class="nx">timeout</span> <span class="o">&amp;&amp;</span> <span class="nx">options</span><span class="p">.</span><span class="nx">trailing</span> <span class="o">!==</span> <span class="kc">false</span><span class="p">){</span>
+            <span class="nx">timeout</span> <span class="o">=</span> <span class="nx">setTimeout</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+                <span class="nx">previous</span> <span class="o">=</span> <span class="nx">options</span><span class="p">.</span><span class="nx">leading</span> <span class="o">===</span> <span class="kc">false</span> <span class="p">?</span> <span class="mi">0</span> <span class="p">:</span> <span class="nb">Date</span><span class="p">.</span><span class="nx">now</span><span class="p">();</span>
+                <span class="nx">fn</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span><span class="k">this</span><span class="p">,</span><span class="nx">args</span><span class="p">)</span>
+                <span class="nx">timout</span> <span class="o">=</span> <span class="kc">null</span>
+            <span class="p">},</span><span class="nx">remaining</span><span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="c1">//默认第一次是执行的</span>
+<span class="nx">btn</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="dl">"</span><span class="s2">click</span><span class="dl">"</span><span class="p">,</span> <span class="nx">throttle</span><span class="p">(</span><span class="nx">logger</span><span class="p">,</span> <span class="mi">2000</span><span class="p">,</span> <span class="p">{</span><span class="na">trailing</span><span class="p">:</span> <span class="kc">true</span><span class="p">,</span><span class="na">leading</span><span class="p">:</span> <span class="kc">false</span><span class="p">}))</span>
+<span class="c1">//trailing: true表示最后一次会执行</span>
+<span class="c1">//leading：false表示第一次不执行</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<h3 id="总结">总结</h3>
+
+<ul>
+  <li>防抖是将多次行为转化为最后一次执行，节流是每隔一段时间执行一次。</li>
+</ul>
+:ET

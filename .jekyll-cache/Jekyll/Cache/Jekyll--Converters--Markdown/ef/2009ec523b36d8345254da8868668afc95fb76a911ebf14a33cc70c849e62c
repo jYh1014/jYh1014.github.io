@@ -1,0 +1,34 @@
+I"&<h2 id="为什么需要防抖和节流">为什么需要防抖和节流</h2>
+<blockquote>
+  <p>比如用户进行sroll和resize等行为的时候，会导致绑定的回调函数频繁执行（如果回调函数里大量操作dom，卡顿会更加严重），接着页面会不停的重新渲染，会大大加重浏览器的负担。</p>
+</blockquote>
+
+<h3 id="防抖">防抖</h3>
+<blockquote>
+  <p>在规定时间阀值内，回调函数只执行一次，如果在规定时间内再次触发该事件，则清空之前的定时器，重写开启一个定时器，等到该行为的空闲时间大于规定时间则定时器执行并执行其中的回调函数。</p>
+</blockquote>
+
+<h4 id="应用场景">应用场景</h4>
+
+<ul>
+  <li>调整浏览器窗口大小的onresize事件，只需要在用户最后一次拖动完成后一段事件内执行就行，不需要频繁的执行。</li>
+  <li>文本编辑器实时保存，当无任何更改操作一秒后进行保存</li>
+  <li>各种按钮的频繁点击会导致多次请求，也要防抖。
+```js</li>
+</ul>
+<body>
+<button id="btn">快速点击</button>
+</body>
+<script>
+
+</script>
+
+<p>function logger(){
+    console.log(“logger”)
+}
+function debounce(fn, wait, immediate){</p>
+
+<p>}
+btn.addEventListener(“click”, debounce(logger, 2000, true))
+```</p>
+:ET

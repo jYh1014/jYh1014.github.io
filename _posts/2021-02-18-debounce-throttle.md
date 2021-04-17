@@ -39,8 +39,8 @@ function debounce(fn, wait, immediate){
             if(callNow) fn.apply(this,args)
         }
         timeout = setTimeout(()=>{
-        fn.apply(this,args)
-        timeout = null
+            fn.apply(this,args)
+            timeout = null
     },wait)
     }
 }

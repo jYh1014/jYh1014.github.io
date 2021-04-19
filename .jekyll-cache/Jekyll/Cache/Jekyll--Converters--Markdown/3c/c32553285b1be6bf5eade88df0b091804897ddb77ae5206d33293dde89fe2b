@@ -1,0 +1,52 @@
+I"�<h2 id="原型prototype"><strong>原型prototype</strong></h2>
+
+<blockquote>
+  <p>每个函数都有一个prototype属性，指向一个对象，这个对象就是调用该构造函数得到的实例的原型对象。
+原型：每一个js对象创建的时候都会与之关联另一个对象，这个对象就是原型对象，每一个对象都会从原型继承属性。</p>
+</blockquote>
+
+<h2 id="__proto__"><strong>__proto__</strong></h2>
+
+<blockquote>
+  <p>每一个对象（除了null）都有这个__proto__属性，指向该对象的原型对象。</p>
+</blockquote>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td> --><td class="rouge-code"><pre><span class="kd">function</span> <span class="nx">Person</span><span class="p">()</span> <span class="p">{</span>
+
+<span class="p">}</span>
+<span class="kd">var</span> <span class="nx">person</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Person</span><span class="p">();</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">person</span><span class="p">.</span><span class="nx">__proto__</span> <span class="o">===</span> <span class="nx">Person</span><span class="p">.</span><span class="nx">prototype</span><span class="p">);</span> <span class="c1">// true</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="constructor"><strong>constructor</strong></h2>
+
+<blockquote>
+  <p>每个原型对象都有一个construtor属性指向关联的构造函数。
+为什么实例对象也有construtor属性？其本身并没有这个属性，它会沿着原型链从实例的原型对象上面去找constructor属性。</p>
+</blockquote>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td> --><td class="rouge-code"><pre><span class="kd">function</span> <span class="nx">Person</span><span class="p">()</span> <span class="p">{</span>
+
+<span class="p">}</span>
+<span class="kd">var</span> <span class="nx">person</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Person</span><span class="p">();</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">person</span><span class="p">.</span><span class="kd">constructor</span> <span class="o">===</span> <span class="nx">Person</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="kd">constructor</span> <span class="o">===</span> <span class="nx">Person</span><span class="p">)</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="原型链"><strong>原型链</strong></h2>
+
+<blockquote>
+  <p>当读取对象的属性或者方法，如果找不到，就会查找与之关联的原型对象上的属性，如果还查找不到，就去找原型的原型，一直到最顶层null为止。原型链是通过 <strong>__proto__</strong>属性链接起来的。</p>
+</blockquote>
+
+<p>1– qw</p>
+:ET

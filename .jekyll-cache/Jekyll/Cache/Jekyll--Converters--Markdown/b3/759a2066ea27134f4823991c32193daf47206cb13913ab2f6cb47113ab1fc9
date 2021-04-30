@@ -1,0 +1,338 @@
+I"�^<h2 id="jsx">jsx</h2>
+
+<ul>
+  <li>什么是jsx？是一种 JavaScript 的语法扩展，用来描述用户界面。看起来更像是javascript + html。</li>
+  <li>为什么要用jsx？不用引入太多的概念和语法，只写js就能将页面呈现出来。React 认为渲染逻辑本质上与其他 UI 逻辑内在耦合，比如，在 UI 中需要绑定处理事件、在某些时刻状态发生变化时需要通知到 UI，以及需要在 UI 中展示准备好的数据</li>
+  <li>jsx的工作原理？jsx浏览器无法识别，经过babel转义，其实是React.createElement的语法糖。</li>
+  <li>jsx其实也是普通的js对象。</li>
+</ul>
+
+<h2 id="react元素">react元素</h2>
+
+<blockquote>
+  <p>元素是构成 React 应用的最小单位,JSX 就是用来声明 React 当中的元素.与浏览器的 DOM 元素不同，React 当中的元素事实上是普通的对象(虚拟dom),ReactDOM来确保浏览器中的DOM数据和React元素保持一致.</p>
+</blockquote>
+
+<h2 id="虚拟dom">虚拟dom</h2>
+
+<ul>
+  <li>什么是虚拟dom？其实就是一个普通的js对象，来描述对应dom中的真实节点的抽象，再通过render方法将其渲染成真实的dom节点插入到页面里。</li>
+  <li>虚拟dom的优点？避免通过操作dom的方式来达到视图更新的目的，因为这样会造成整个页面都刷新。而虚拟dom这种方式每次只是js对象的更改，然后通过对前后虚拟dom的对比，从而找出变更的部分进行部分更新。</li>
+</ul>
+
+<h2 id="函数组件和类组件">函数组件和类组件</h2>
+<ul>
+  <li>函数组件是一个纯函数</li>
+  <li>函数组件没有状态，没有生命周期，也没有this.</li>
+  <li>函数组件不需要生成实例</li>
+</ul>
+
+<h3 id="纯函数">纯函数</h3>
+
+<ul>
+  <li>不能修改入参</li>
+  <li>不能修改函数作用域外的的变量，其实也就是在执行过程中不能产生副作用（调用 DOM API 修改页面、发送了 Ajax 请求、window.reload、console.log也是副作用）</li>
+  <li>如果参数相同，那返回结果一定相同。</li>
+</ul>
+
+<h2 id="合成事件">合成事件</h2>
+
+<ul>
+  <li>在组件中的事件处理函数中拿到的事件对象并不是原生的事件对象，而是经过React合成的SyntheticEvent对象。它解决了不同浏览器之间的兼容性差异。抽象成统一的事件对象。</li>
+  <li>React组件上声明的事件最终绑定到了document这个DOM节点上，也就是说触发事件的时候会先进行原生冒泡到document上，而不是React组件对应的DOM节点。故只有document这个节点上面才绑定了DOM原生事件，其他节点没有绑定事件。这样简化了DOM原生事件，减少了内存开销</li>
+  <li>react在自己的合成事件中重写了 stopPropagation方法，然后在遍历每一级事件的过程中根据isPropagationStopped属性判断是否继续收集父级绑定相同事件的回调函数，如果不需要不收集最后就遍历执行之前收集好的回调函数。</li>
+  <li>e.stopPropagation只是阻止了合成事件里面的冒泡，并没有阻止原生事件的冒泡。</li>
+  <li>和批量更新也有关系，在事件回调函数处理前将isBatchingUpdate批量更新属性设置为true表示是异步更新，处理后设置为false。</li>
+  <li>事件同步代码执行完成后，合成事件对象里面的属性都置为null,如果想要在setTimeout等代码里获取到SyntheticEvent对象，就要使用persist持久化。</li>
+</ul>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+</pre></td> --><td class="rouge-code"><pre> <span class="kd">let</span> <span class="nx">updateQueue</span> <span class="o">=</span> <span class="p">{</span>
+     <span class="na">updaters</span><span class="p">:</span> <span class="p">[],</span>
+     <span class="nx">add</span><span class="p">(</span><span class="nx">updater</span><span class="p">){</span>
+         <span class="k">this</span><span class="p">.</span><span class="nx">updaters</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">updater</span><span class="p">)</span>
+     <span class="p">},</span>
+     <span class="nx">batchUpdate</span><span class="p">(){</span>
+         <span class="k">this</span><span class="p">.</span><span class="nx">updaters</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="nx">updater</span><span class="o">=&gt;</span><span class="nx">updater</span><span class="p">.</span><span class="nx">updateComponent</span><span class="p">())</span>
+     <span class="p">}</span>
+ <span class="p">}</span>
+<span class="kd">function</span> <span class="nx">addEvent</span><span class="p">(</span><span class="nx">dom</span><span class="p">,</span> <span class="nx">eventType</span><span class="p">,</span> <span class="nx">listener</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">let</span> <span class="nx">store</span> <span class="o">=</span> <span class="nx">dom</span><span class="p">.</span><span class="nx">store</span> <span class="o">||</span> <span class="p">(</span><span class="nx">dom</span><span class="p">.</span><span class="nx">store</span> <span class="o">=</span> <span class="p">{})</span>
+    <span class="nx">store</span><span class="p">[</span><span class="nx">eventType</span><span class="p">]</span> <span class="o">=</span> <span class="nx">listener</span>
+    <span class="nb">document</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="nx">eventType</span><span class="p">.</span><span class="nx">slice</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="nx">dispatchEvent</span><span class="p">,</span> <span class="kc">false</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="kd">let</span> <span class="nx">syntheticEvent</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="kd">function</span> <span class="nx">dispatchEvent</span><span class="p">(</span><span class="nx">event</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">let</span> <span class="p">{</span> <span class="nx">target</span><span class="p">,</span> <span class="nx">type</span> <span class="p">}</span> <span class="o">=</span> <span class="nx">event</span>
+    <span class="kd">let</span> <span class="nx">eventType</span> <span class="o">=</span> <span class="dl">"</span><span class="s2">on</span><span class="dl">"</span> <span class="o">+</span> <span class="nx">type</span>
+    <span class="k">while</span> <span class="p">(</span><span class="nx">target</span><span class="p">)</span> <span class="p">{</span>
+        <span class="kd">let</span> <span class="p">{</span> <span class="nx">store</span> <span class="p">}</span> <span class="o">=</span> <span class="nx">target</span>
+        <span class="k">if</span><span class="p">(</span><span class="nx">store</span><span class="p">){</span>
+            <span class="kd">let</span> <span class="nx">listener</span> <span class="o">=</span> <span class="nx">store</span><span class="p">[</span><span class="nx">eventType</span><span class="p">]</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nx">listener</span><span class="p">)</span> <span class="p">{</span>
+                <span class="nx">syntheticEvent</span><span class="p">.</span><span class="nx">nativeEvent</span> <span class="o">=</span> <span class="nx">event</span>
+                <span class="k">for</span> <span class="p">(</span><span class="kd">let</span> <span class="nx">key</span> <span class="k">in</span> <span class="nx">event</span><span class="p">)</span> <span class="p">{</span>
+                    <span class="nx">syntheticEvent</span><span class="p">[</span><span class="nx">key</span><span class="p">]</span> <span class="o">=</span> <span class="nx">event</span><span class="p">[</span><span class="nx">key</span><span class="p">]</span>
+                <span class="p">}</span>
+                <span class="c1">//还会根据是否阻止冒泡来判断是否向下执行</span>
+                <span class="nx">updateQueue</span><span class="p">.</span><span class="nx">isBatchingUpdate</span> <span class="o">=</span> <span class="kc">true</span>
+                <span class="nx">listener</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="nx">target</span><span class="p">,</span> <span class="nx">event</span><span class="p">)</span>
+                <span class="c1">// updateQueue.isBatchingUpdate = false</span>
+                <span class="nx">updateQueue</span><span class="p">.</span><span class="nx">batchUpdate</span><span class="p">()</span> <span class="c1">//</span>
+                <span class="k">for</span> <span class="p">(</span><span class="kd">let</span> <span class="nx">key</span> <span class="k">in</span> <span class="nx">syntheticEvent</span><span class="p">)</span> <span class="p">{</span>
+                    <span class="nx">syntheticEvent</span><span class="p">[</span><span class="nx">key</span><span class="p">]</span> <span class="o">=</span> <span class="kc">null</span>
+                <span class="p">}</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+        <span class="nx">target</span> <span class="o">=</span> <span class="nx">target</span><span class="p">.</span><span class="nx">parentNode</span>
+    <span class="p">}</span>
+<span class="p">}</span> 
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="setstate">setState</h2>
+
+<ul>
+  <li>setState本身并不是异步的，只是在生命周期钩子和合成事件里面，会先将参数状态缓存起来，等同步代码执行完后再执行状态更新。在别的原生事件或者promise、定时器等里面都是同步执行的。</li>
+  <li>把调用setState的组件缓存到一个队列（脏组件）里面，当调用batchUpdate方法的时候，遍历所有的脏组件（状态需要更新而目前还没更新）依次执行组件实例的updateComponent方法。</li>
+</ul>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+</pre></td> --><td class="rouge-code"><pre> <span class="kd">let</span> <span class="nx">updateQueue</span> <span class="o">=</span> <span class="p">{</span>
+     <span class="na">updaters</span><span class="p">:</span> <span class="p">[],</span>
+     <span class="nx">add</span><span class="p">(</span><span class="nx">updater</span><span class="p">){</span>
+         <span class="k">this</span><span class="p">.</span><span class="nx">updaters</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">updater</span><span class="p">)</span>
+     <span class="p">},</span>
+     <span class="nx">batchUpdate</span><span class="p">(){</span>
+         <span class="k">this</span><span class="p">.</span><span class="nx">updaters</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="nx">updater</span><span class="o">=&gt;</span><span class="nx">updater</span><span class="p">.</span><span class="nx">updateComponent</span><span class="p">())</span>
+     <span class="p">}</span>
+ <span class="p">}</span>
+<span class="kd">class</span> <span class="nx">Component</span><span class="p">{</span>
+    <span class="kd">constructor</span><span class="p">(</span><span class="nx">props</span><span class="p">){</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">props</span> <span class="o">=</span> <span class="nx">props</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">$updater</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Updater</span><span class="p">(</span><span class="k">this</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="nx">setState</span><span class="p">(</span><span class="nx">partialState</span><span class="p">,</span><span class="nx">callback</span><span class="p">){</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">$updater</span><span class="p">.</span><span class="nx">addState</span><span class="p">(</span><span class="nx">partialState</span><span class="p">,</span><span class="nx">callback</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="nx">forceUpdate</span><span class="p">(){</span>
+        <span class="k">if</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">componentWillUpdate</span><span class="p">){</span>
+            <span class="k">this</span><span class="p">.</span><span class="nx">componentWillUpdate</span><span class="p">()</span>
+        <span class="p">}</span>
+        <span class="kd">let</span> <span class="nx">oldDOM</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">dom</span>
+        <span class="kd">let</span> <span class="nx">newVdom</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">render</span><span class="p">()</span>
+        <span class="c1">//此处应该进行domdiff的操作，而不是完全替换掉之前的dom</span>
+        <span class="kd">let</span> <span class="nx">newDOM</span> <span class="o">=</span> <span class="nx">createDOM</span><span class="p">(</span><span class="nx">newVdom</span><span class="p">)</span><span class="c1">//将虚拟dom转化成真实dom</span>
+        <span class="nx">oldDOM</span><span class="p">.</span><span class="nx">parentNode</span><span class="p">.</span><span class="nx">replaceChild</span><span class="p">(</span><span class="nx">newDOM</span><span class="p">,</span> <span class="nx">oldDOM</span><span class="p">)</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">dom</span> <span class="o">=</span> <span class="nx">newDOM</span>
+        <span class="k">if</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">componentDidUpdate</span><span class="p">){</span>
+            <span class="k">this</span><span class="p">.</span><span class="nx">componentDidUpdate</span><span class="p">()</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="kd">class</span> <span class="nx">Updater</span><span class="p">{</span>
+    <span class="kd">constructor</span><span class="p">(</span><span class="nx">instance</span><span class="p">){</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">instance</span> <span class="o">=</span> <span class="nx">instance</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">pendingState</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">callbacks</span><span class="o">=</span><span class="p">[]</span>
+    <span class="p">}</span>
+    <span class="nx">addState</span><span class="p">(</span><span class="nx">partialState</span><span class="p">,</span><span class="nx">callback</span><span class="p">){</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">pendingState</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">partialState</span><span class="p">)</span>
+        <span class="k">if</span><span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="k">this</span><span class="p">.</span><span class="nx">callbacks</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">callback</span><span class="p">)</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">emitUpdate</span><span class="p">()</span>
+    <span class="p">}</span>
+    <span class="nx">emitUpdate</span><span class="p">(){</span>
+        <span class="k">if</span><span class="p">(</span><span class="nx">updateQueue</span><span class="p">.</span><span class="nx">isBatchingUpdate</span><span class="p">){</span>
+            <span class="nx">updateQueue</span><span class="p">.</span><span class="nx">add</span><span class="p">(</span><span class="k">this</span><span class="p">)</span> <span class="c1">//脏组件缓存到updateQueue里面等待批量更新</span>
+        <span class="p">}</span><span class="k">else</span><span class="p">{</span>
+            <span class="k">this</span><span class="p">.</span><span class="nx">updateComponent</span><span class="p">()</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="nx">updateComponent</span><span class="p">(){</span>
+        <span class="kd">let</span> <span class="p">{</span><span class="nx">pendingState</span><span class="p">,</span><span class="nx">instance</span><span class="p">,</span><span class="nx">nextProps</span><span class="p">}</span> <span class="o">=</span> <span class="k">this</span>
+        <span class="k">if</span><span class="p">(</span><span class="nx">pendingState</span><span class="p">.</span><span class="nx">length</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="p">){</span>
+            <span class="k">this</span><span class="p">.</span><span class="nx">shouldUpdate</span><span class="p">(</span><span class="nx">instance</span><span class="p">,</span><span class="nx">nextProps</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">getState</span><span class="p">())</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="nx">getState</span><span class="p">(){</span>
+        <span class="kd">let</span> <span class="p">{</span><span class="nx">classInstance</span><span class="p">,</span> <span class="nx">pendingStates</span><span class="p">}</span> <span class="o">=</span> <span class="k">this</span>
+        <span class="kd">let</span> <span class="p">{</span><span class="nx">state</span><span class="p">}</span> <span class="o">=</span> <span class="nx">classInstance</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">state</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">pendingStates</span><span class="p">.</span><span class="nx">reduce</span><span class="p">((</span><span class="nx">prev</span><span class="p">,</span> <span class="nx">current</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+            <span class="kd">let</span> <span class="nx">nextState</span> <span class="o">=</span> <span class="k">typeof</span> <span class="nx">current</span> <span class="o">===</span> <span class="dl">"</span><span class="s2">function</span><span class="dl">"</span> <span class="p">?</span> <span class="nx">current</span><span class="p">(</span><span class="nx">prev</span><span class="p">)</span> <span class="p">:</span> <span class="nx">current</span>
+            <span class="nx">prev</span> <span class="o">=</span> <span class="p">{</span> <span class="p">...</span><span class="nx">prev</span><span class="p">,</span> <span class="p">...</span><span class="nx">nextState</span> <span class="p">}</span>
+            <span class="k">return</span> <span class="nx">prev</span>
+        <span class="p">},</span> <span class="k">this</span><span class="p">.</span><span class="nx">state</span><span class="p">)</span> <span class="c1">//nextState会合并以前相同key的state</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">callbacks</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="nx">cb</span> <span class="o">=&gt;</span> <span class="nx">cb</span><span class="p">())</span>
+        <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">state</span>
+    <span class="p">}</span>
+    <span class="nx">shouldUpdate</span><span class="p">(</span><span class="nx">instance</span><span class="p">,</span><span class="nx">nextProps</span><span class="p">,</span><span class="nx">nextState</span><span class="p">){</span>
+        <span class="nx">instance</span><span class="p">.</span><span class="nx">state</span> <span class="o">=</span> <span class="nx">nextState</span>
+        <span class="nx">instance</span><span class="p">.</span><span class="nx">props</span> <span class="o">=</span> <span class="nx">nextProps</span>
+        <span class="k">if</span><span class="p">(</span><span class="nx">instance</span><span class="p">.</span><span class="nx">shouldComponentUpdate</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="nx">instance</span><span class="p">.</span><span class="nx">shouldComponentUpdate</span><span class="p">(</span><span class="nx">nextProps</span><span class="p">,</span><span class="nx">nextState</span><span class="p">)){</span>
+            <span class="k">return</span>
+        <span class="p">}</span>
+        <span class="nx">instance</span><span class="p">.</span><span class="nx">forceUpdate</span><span class="p">()</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<ul>
+  <li>注意：在componentWillUpdate componentDidUpdate shouldComponentUpdate这几个生命周期设置state容易造成死循环。</li>
+  <li></li>
+</ul>
+
+<h2 id="生命周期新版">生命周期新版</h2>
+
+<ul>
+  <li>废弃了componentWillMount和componentWillUpdate和componentWillReceiveProps</li>
+  <li>新增了getDerivedStateFromProps和getSnapshotBeforeUpdate这两个生命周期</li>
+</ul>
+
+<h3 id="废弃的原因">废弃的原因</h3>
+<ul>
+  <li>启用了fiber之后就是通过异步的方式进行渲染，在 render 函数之前的所有函数都有可能被执行多次。(待fiber理解之后更新)</li>
+</ul>
+
+<h3 id="getderivedstatefrompropsnextpropsprevstate">getDerivedStateFromProps（nextProps,prevState）</h3>
+
+<ul>
+  <li>static getDerivedStateFromProps(props, state)是类组件的静态方法，在组件初始化和组件更新都会执行。是在组件的render方法之前调用，返回一个state对象来更新状态，或者返回null来不更新任何内容。新的 getDerivedStateFromProps 实际上与 componentDidUpdate 一起取代了以前的 UNSAFE_componentWillReceiveProps 函数</li>
+  <li>静态方法不依赖组件实例而存在，故在该方法内部是无法访问 this 的.所以我们无法做一些不合理的操作比如请求数据，setState等等，尽量来保持生命周期行为的可控可预测。</li>
+  <li>其实就是根据props来更新状态</li>
+</ul>
+
+<h3 id="getsnapshotbeforeupdateprevprops-prevstate">getSnapshotBeforeUpdate（prevProps, prevState）</h3>
+
+<ul>
+  <li>是在组件的render方法调用之后新的dom还未挂载页面之前执行，这个时候就能获取到老的dom来做一些操作。其返回值将作为参数传递给componentDidUpdate。</li>
+  <li>在最近一次渲染输出</li>
+</ul>
+
+<h2 id="dom-diff">dom diff</h2>
+
+<h3 id="diff策略">diff策略</h3>
+
+<ul>
+  <li>DOM节点跨层级的可以忽略不计</li>
+  <li>拥有相同类的两个组件将会生成相似的树形结构，拥有不同类的两个组件将会生成不同的树形结构。</li>
+</ul>
+
+<h3 id="tree-diff">tree diff</h3>
+
+<ul>
+  <li>新旧虚拟dom进行同层次的比较，</li>
+</ul>
+:ET

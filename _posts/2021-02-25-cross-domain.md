@@ -15,7 +15,7 @@ pin: true
 ### 1.jsonp
 
 > 1.主要就是利用了 script 标签的src没有跨域限制来完成的 2.只能发送get请求 3.不安全，xss攻击
-> 原理：前端自定义一个callback函数，向后端发送一个带有callback参数的get请求，服务端返回一个callback的执行函数并且带有参数。前端就会执行这个callback函数并且拿到其中的参数。
+> 原理：前端定义一个callback函数，向后端发送一个带有callback参数的get请求，服务端返回一个callback的执行函数并且带有参数。前端就会执行这个callback函数并且拿到其中的参数。
 
 ```js
 //原生js实现

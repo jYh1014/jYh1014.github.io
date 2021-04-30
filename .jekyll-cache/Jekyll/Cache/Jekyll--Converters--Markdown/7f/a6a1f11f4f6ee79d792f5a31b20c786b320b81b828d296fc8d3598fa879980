@@ -1,0 +1,674 @@
+I"�<h2 id="promise介绍">promise介绍</h2>
+<blockquote>
+  <p><strong>1.promise是什么?</strong> <br />
+promise对象是一个构造函数。</p>
+</blockquote>
+
+<blockquote>
+  <p><strong>2.promise的应用场景</strong> <br />
+Promise 是异步编程的一种解决方案。主要是为了解决回调地狱的问题。下面来看个回调嵌套的小例子：</p>
+</blockquote>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+</pre></td> --><td class="rouge-code"><pre>fs.readFile<span class="o">(</span><span class="s2">"name.txt"</span>, <span class="s2">"utf8"</span>, <span class="k">function</span><span class="o">(</span>err,data<span class="o">){</span>
+    <span class="k">if</span><span class="o">(</span>data<span class="o">){</span>
+        fs.readFile<span class="o">(</span>data, <span class="s2">"utf8"</span>, <span class="k">function</span><span class="o">(</span>err1,data1<span class="o">){</span>
+            // console.log<span class="o">(</span>err1,data1<span class="o">)</span>
+        <span class="o">})</span>
+    <span class="o">}</span>
+<span class="o">})</span>
+改造成promise后，用链式调用的方式。
+<span class="k">function </span>readFile<span class="o">(</span>...args<span class="o">)</span> <span class="o">{</span>
+    <span class="k">return </span>new Promise<span class="o">((</span>resolve, reject<span class="o">)</span> <span class="o">=&gt;</span> <span class="o">{</span>
+        fs.readFile<span class="o">(</span>...args, <span class="o">(</span>err, data<span class="o">)</span> <span class="o">=&gt;</span> <span class="o">{</span>
+            <span class="k">if</span><span class="o">(</span>err<span class="o">)</span> reject<span class="o">(</span>err<span class="o">)</span>
+            resolve<span class="o">(</span>data<span class="o">)</span>
+        <span class="o">})</span>
+    <span class="o">})</span>
+<span class="o">}</span>
+readFile<span class="o">(</span><span class="s2">"name.txt"</span>, <span class="s2">"utf8"</span><span class="o">)</span>.then<span class="o">(</span>data <span class="o">=&gt;</span> <span class="o">{</span>
+    <span class="k">return </span>readFile<span class="o">(</span>data, <span class="s2">"utf8"</span><span class="o">)</span><span class="p">;</span>
+<span class="o">}</span>, err <span class="o">=&gt;</span> <span class="o">{</span>
+    console.log<span class="o">(</span><span class="s2">"err1"</span>+err<span class="o">)</span>
+<span class="o">})</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<blockquote>
+  <p><strong>3.promise原理</strong></p>
+</blockquote>
+
+<p>首先实现一个最简单的：</p>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+</pre></td> --><td class="rouge-code"><pre><span class="kd">let</span> <span class="nx">promise</span> <span class="o">=</span> <span class="k">new</span> <span class="nb">Promise</span><span class="p">((</span><span class="nx">resolve</span><span class="p">,</span> <span class="nx">reject</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="nx">resolve</span><span class="p">(</span><span class="dl">"</span><span class="s2">ok</span><span class="dl">"</span><span class="p">)</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+<span class="p">})</span>
+<span class="nx">promise</span><span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="nx">data</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="dl">"</span><span class="s2">success: </span><span class="dl">"</span> <span class="o">+</span> <span class="nx">data</span><span class="p">)</span>
+<span class="p">},</span> <span class="nx">err</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="dl">"</span><span class="s2">error: </span><span class="dl">"</span> <span class="o">+</span> <span class="nx">err</span><span class="p">)</span>
+<span class="p">})</span>
+<span class="nx">源码实现如下</span><span class="err">：</span>
+<span class="kd">class</span> <span class="nb">Promise</span> <span class="p">{</span>
+    <span class="kd">constructor</span><span class="p">(</span><span class="nx">executor</span><span class="p">){</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">value</span> <span class="o">=</span> <span class="kc">undefined</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">reason</span> <span class="o">=</span> <span class="kc">undefined</span>
+        <span class="kd">let</span> <span class="nx">resolve</span> <span class="o">=</span> <span class="p">(</span><span class="nx">value</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+            <span class="k">this</span><span class="p">.</span><span class="nx">value</span> <span class="o">=</span> <span class="nx">value</span>
+        <span class="p">}</span>
+        <span class="kd">let</span> <span class="nx">reject</span> <span class="o">=</span> <span class="p">(</span><span class="nx">reason</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+            <span class="k">this</span><span class="p">.</span><span class="nx">reason</span> <span class="o">=</span> <span class="nx">reason</span>
+        <span class="p">}</span>
+        <span class="nx">executor</span><span class="p">(</span><span class="nx">resolve</span><span class="p">,</span> <span class="nx">reject</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="nx">then</span><span class="p">(</span><span class="nx">onfulfilled</span><span class="p">,</span> <span class="nx">onreject</span><span class="p">){</span>
+        <span class="nx">onfulfilled</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">value</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="nb">Promise</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p>resolve是异步操作成功后执行的，如果异步操作失败则要执行reject,此时就要考虑加状态，成功”FULFILLED”、失败”REJECTED”、进行中”PENDDING”</p>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+</pre></td> --><td class="rouge-code"><pre><span class="kd">let</span> <span class="nx">promise</span> <span class="o">=</span> <span class="k">new</span> <span class="nb">Promise</span><span class="p">((</span><span class="nx">resolve</span><span class="p">,</span> <span class="nx">reject</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="nx">reject</span><span class="p">(</span><span class="dl">"</span><span class="s2">出错了</span><span class="dl">"</span><span class="p">)</span>
+<span class="p">})</span>
+<span class="c1">//源码实现：</span>
+<span class="kd">const</span> <span class="nx">PENDDING</span> <span class="o">=</span> <span class="dl">"</span><span class="s2">PENDDING</span><span class="dl">"</span>
+<span class="kd">const</span> <span class="nx">FULFILLED</span> <span class="o">=</span> <span class="dl">"</span><span class="s2">FULFILLED</span><span class="dl">"</span>
+<span class="kd">const</span> <span class="nx">REJECTED</span> <span class="o">=</span> <span class="dl">"</span><span class="s2">REJECTED</span><span class="dl">"</span>
+<span class="kd">class</span> <span class="nb">Promise</span><span class="p">{</span>
+    <span class="kd">constructor</span><span class="p">(</span><span class="nx">executor</span><span class="p">){</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">value</span> <span class="o">=</span> <span class="kc">undefined</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">reason</span> <span class="o">=</span> <span class="kc">undefined</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">status</span> <span class="o">=</span> <span class="kc">undefined</span>
+        <span class="kd">let</span> <span class="nx">resolve</span> <span class="o">=</span> <span class="p">(</span><span class="nx">value</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span><span class="c1">//</span>
+            <span class="k">this</span><span class="p">.</span><span class="nx">value</span> <span class="o">=</span> <span class="nx">value</span>
+            <span class="k">this</span><span class="p">.</span><span class="nx">status</span> <span class="o">=</span> <span class="nx">FULFILLED</span> 
+        <span class="p">}</span>
+        <span class="kd">let</span> <span class="nx">reject</span> <span class="o">=</span> <span class="p">(</span><span class="nx">reason</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+            <span class="k">this</span><span class="p">.</span><span class="nx">reason</span> <span class="o">=</span> <span class="nx">reason</span>
+            <span class="k">this</span><span class="p">.</span><span class="nx">status</span> <span class="o">=</span> <span class="nx">REJECTED</span>
+        <span class="p">}</span>
+        <span class="nx">executor</span><span class="p">(</span><span class="nx">resolve</span><span class="p">,</span> <span class="nx">reject</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="nx">then</span><span class="p">(</span><span class="nx">onfulfilled</span><span class="p">,</span> <span class="nx">onreject</span><span class="p">){</span>
+        <span class="k">if</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">status</span> <span class="o">===</span> <span class="nx">FULFILLED</span><span class="p">){</span>
+            <span class="nx">onfulfilled</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">value</span><span class="p">)</span>
+        <span class="p">}</span>
+        <span class="k">if</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">status</span> <span class="o">===</span> <span class="nx">REJECTED</span><span class="p">){</span>
+            <span class="nx">onreject</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">reason</span><span class="p">)</span>
+        <span class="p">}</span>
+        
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="nb">Promise</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p>到此一个简单的promise源码已经差不多了，但是实际应用中往往很复杂，最常见的就是和定时器的组合。</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+</pre></td> --><td class="rouge-code"><pre><span class="kd">let</span> <span class="nx">promise</span> <span class="o">=</span> <span class="k">new</span> <span class="nb">Promise</span><span class="p">((</span><span class="nx">resolve</span><span class="p">,</span> <span class="nx">reject</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="nx">setTimeout</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+        <span class="nx">resolve</span><span class="p">(</span><span class="dl">"</span><span class="s2">ok</span><span class="dl">"</span><span class="p">)</span>
+    <span class="p">},</span><span class="mi">1000</span><span class="p">)</span>
+<span class="p">})</span>
+<span class="nx">promise</span><span class="p">.</span><span class="nx">then</span><span class="p">(</span><span class="nx">data</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="dl">"</span><span class="s2">success: </span><span class="dl">"</span> <span class="o">+</span> <span class="nx">data</span><span class="p">)</span>
+<span class="p">},</span> <span class="nx">err</span> <span class="o">=&gt;</span> <span class="p">{</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="dl">"</span><span class="s2">error: </span><span class="dl">"</span> <span class="o">+</span> <span class="nx">err</span><span class="p">)</span>
+<span class="p">})</span>
+<span class="nx">这种情况需要利用resolveCallbacks和rejectCallbacks来做一个缓存数组</span><span class="err">。</span>
+
+<span class="kd">class</span> <span class="nb">Promise</span><span class="p">{</span>
+    <span class="kd">constructor</span><span class="p">(</span><span class="nx">executor</span><span class="p">){</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">value</span> <span class="o">=</span> <span class="kc">undefined</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">reason</span> <span class="o">=</span> <span class="kc">undefined</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">status</span> <span class="o">=</span> <span class="nx">PENDDING</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">resolveCallbacks</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">this</span><span class="p">.</span><span class="nx">rejectCallbacks</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="kd">let</span> <span class="nx">resolve</span> <span class="o">=</span> <span class="p">(</span><span class="nx">value</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+            <span class="k">this</span><span class="p">.</span><span class="nx">value</span> <span class="o">=</span> <span class="nx">value</span>
+            <span class="k">this</span><span class="p">.</span><span class="nx">status</span> <span class="o">=</span> <span class="nx">FULFILLED</span> 
+            <span class="k">this</span><span class="p">.</span><span class="nx">resolveCallbacks</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="nx">fn</span> <span class="o">=&gt;</span> <span class="nx">fn</span><span class="p">())</span>
+        <span class="p">}</span>
+        <span class="kd">let</span> <span class="nx">reject</span> <span class="o">=</span> <span class="p">(</span><span class="nx">reason</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="p">{</span>
+            <span class="k">this</span><span class="p">.</span><span class="nx">reason</span> <span class="o">=</span> <span class="nx">reason</span>
+            <span class="k">this</span><span class="p">.</span><span class="nx">status</span> <span class="o">=</span> <span class="nx">REJECTED</span>
+            <span class="k">this</span><span class="p">.</span><span class="nx">rejectCallbacks</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="nx">fn</span> <span class="o">=&gt;</span> <span class="nx">fn</span><span class="p">())</span>
+        <span class="p">}</span>
+        <span class="nx">executor</span><span class="p">(</span><span class="nx">resolve</span><span class="p">,</span> <span class="nx">reject</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="nx">then</span><span class="p">(</span><span class="nx">onfulfilled</span><span class="p">,</span> <span class="nx">onreject</span><span class="p">){</span>
+        <span class="k">if</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">status</span> <span class="o">===</span> <span class="nx">FULFILLED</span><span class="p">){</span>
+            <span class="nx">onfulfilled</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">value</span><span class="p">)</span>
+        <span class="p">}</span>
+        <span class="k">if</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">status</span> <span class="o">===</span> <span class="nx">REJECTED</span><span class="p">){</span>
+            <span class="nx">onreject</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">reason</span><span class="p">)</span>
+        <span class="p">}</span>
+        <span class="k">if</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">status</span> <span class="o">===</span> <span class="nx">PENDDING</span><span class="p">){</span>
+            <span class="k">this</span><span class="p">.</span><span class="nx">resolveCallbacks</span><span class="p">.</span><span class="nx">push</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+                <span class="nx">onfulfilled</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">value</span><span class="p">)</span>
+            <span class="p">})</span>
+            <span class="k">this</span><span class="p">.</span><span class="nx">rejectCallbacks</span><span class="p">.</span><span class="nx">push</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="p">{</span>
+                <span class="nx">onreject</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">reason</span><span class="p">)</span>
+            <span class="p">})</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+<span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="nb">Promise</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p>es6文档上写的promise其中一个特点是一旦状态改变，就不会再变，但是看下面代码：</p>
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+137
+138
+139
+140
+141
+142
+143
+144
+145
+146
+147
+148
+149
+150
+151
+152
+153
+154
+155
+156
+157
+158
+159
+160
+161
+162
+163
+164
+165
+166
+167
+168
+169
+170
+171
+172
+173
+174
+175
+176
+177
+178
+179
+180
+181
+</pre></td> --><td class="rouge-code"><pre><span class="nb">let </span>promise <span class="o">=</span> new Promise<span class="o">((</span>resolve, reject<span class="o">)</span> <span class="o">=&gt;</span> <span class="o">{</span>
+    resolve<span class="o">(</span><span class="s2">"ok"</span><span class="o">)</span>
+    reject<span class="o">(</span><span class="s2">"出错了"</span><span class="o">)</span>
+<span class="o">})</span>
+promise.then<span class="o">(</span>data <span class="o">=&gt;</span> <span class="o">{</span>
+    console.log<span class="o">(</span><span class="s2">"success: "</span> + data<span class="o">)</span>
+<span class="o">}</span>, err <span class="o">=&gt;</span> <span class="o">{</span>
+    console.log<span class="o">(</span><span class="s2">"error: "</span> + err<span class="o">)</span>
+<span class="o">})</span>
+promise的最终状态竟然是reject，正确的状态应该是resolve。
+修改一下源码：
+
+class Promise <span class="o">{</span>
+    constructor<span class="o">(</span>executor<span class="o">)</span> <span class="o">{</span>
+        this.value <span class="o">=</span> undefined
+        this.reason <span class="o">=</span> undefined
+        this.status <span class="o">=</span> PENDDING
+        this.resolveCallbacks <span class="o">=</span> <span class="o">[]</span>
+        this.rejectCallbacks <span class="o">=</span> <span class="o">[]</span>
+        <span class="nb">let </span>resolve <span class="o">=</span> <span class="o">(</span>value<span class="o">)</span> <span class="o">=&gt;</span> <span class="o">{</span>
+            <span class="k">if</span> <span class="o">(</span>this.status <span class="o">===</span> PENDDING<span class="o">)</span> <span class="o">{</span>
+                this.value <span class="o">=</span> value
+                this.status <span class="o">=</span> FULFILLED
+                this.resolveCallbacks.forEach<span class="o">(</span>fn <span class="o">=&gt;</span> fn<span class="o">())</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+        <span class="nb">let </span>reject <span class="o">=</span> <span class="o">(</span>reason<span class="o">)</span> <span class="o">=&gt;</span> <span class="o">{</span>
+            <span class="k">if</span> <span class="o">(</span>this.status <span class="o">===</span> PENDDING<span class="o">)</span> <span class="o">{</span>
+                this.reason <span class="o">=</span> reason
+                this.status <span class="o">=</span> REJECTED
+                this.rejectCallbacks.forEach<span class="o">(</span>fn <span class="o">=&gt;</span> fn<span class="o">())</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+        executor<span class="o">(</span>resolve, reject<span class="o">)</span>
+    <span class="o">}</span>
+    <span class="k">then</span><span class="o">(</span>onfulfilled, onreject<span class="o">)</span> <span class="o">{</span>
+        ...
+    <span class="o">}</span>
+<span class="o">}</span>
+module.exports <span class="o">=</span> Promise
+
+注意：then方法是可以链式调用的，所以then方法的返回值应该是一个新的promise实例。
+ <span class="k">then</span><span class="o">(</span>onfulfilled, onreject<span class="o">)</span> <span class="o">{</span>
+    <span class="nb">let </span>p <span class="o">=</span> new Promise<span class="o">((</span>resolve, reject<span class="o">)</span> <span class="o">=&gt;</span> <span class="o">{</span>
+        <span class="k">if</span> <span class="o">(</span>this.status <span class="o">===</span> FULFILLED<span class="o">)</span> <span class="o">{</span>
+            onfulfilled<span class="o">(</span>this.value<span class="o">)</span>
+        <span class="o">}</span>
+        <span class="k">if</span> <span class="o">(</span>this.status <span class="o">===</span> REJECTED<span class="o">)</span> <span class="o">{</span>
+            onreject<span class="o">(</span>this.reason<span class="o">)</span>
+        <span class="o">}</span>
+        <span class="k">if</span> <span class="o">(</span>this.status <span class="o">===</span> PENDDING<span class="o">)</span> <span class="o">{</span>
+            this.resolveCallbacks.push<span class="o">(()</span> <span class="o">=&gt;</span> <span class="o">{</span>
+                onfulfilled<span class="o">(</span>this.value<span class="o">)</span>
+            <span class="o">})</span>
+            this.rejectCallbacks.push<span class="o">(()</span> <span class="o">=&gt;</span> <span class="o">{</span>
+                onreject<span class="o">(</span>this.reason<span class="o">)</span>
+            <span class="o">})</span>
+        <span class="o">}</span>
+    <span class="o">})</span>
+    <span class="k">return </span>p
+<span class="o">}</span>
+
+再看下面这种情况，then方法里面返回的是一个promise，此时要对then方法对返回值做一下判断，然后进行不同的处理：
+<span class="nb">let </span>promise <span class="o">=</span> new Promise<span class="o">((</span>resolve, reject<span class="o">)</span> <span class="o">=&gt;</span> <span class="o">{</span>
+    resolve<span class="o">(</span><span class="s2">"ok1"</span><span class="o">)</span>
+<span class="o">})</span>
+<span class="nb">let </span>p1 <span class="o">=</span> promise.then<span class="o">(</span>data <span class="o">=&gt;</span> <span class="o">{</span>
+    console.log<span class="o">(</span><span class="s2">"success1:"</span> + data<span class="o">)</span>
+    <span class="k">return </span>new Promise<span class="o">((</span>resolve, reject<span class="o">)</span> <span class="o">=&gt;</span> <span class="o">{</span>
+        resolve<span class="o">(</span><span class="s2">"ok2"</span><span class="o">)</span>
+    <span class="o">})</span>
+<span class="o">}</span>, err <span class="o">=&gt;</span> <span class="o">{</span>
+    console.log<span class="o">(</span><span class="s2">"error1: "</span>+err<span class="o">)</span>
+<span class="o">})</span>
+<span class="nb">let </span>p2 <span class="o">=</span> p1.then<span class="o">(</span>data <span class="o">=&gt;</span> <span class="o">{</span>
+    console.log<span class="o">(</span><span class="s2">"success2:"</span> + data<span class="o">)</span>
+<span class="o">}</span>, err <span class="o">=&gt;</span> <span class="o">{</span>
+    console.log<span class="o">(</span><span class="s2">"error2: "</span>+err<span class="o">)</span>
+<span class="o">})</span>
+解决如下：
+    <span class="k">then</span><span class="o">(</span>onfulfilled, onreject<span class="o">)</span> <span class="o">{</span>
+        <span class="nb">let </span>p <span class="o">=</span> new Promise<span class="o">((</span>resolve, reject<span class="o">)</span> <span class="o">=&gt;</span> <span class="o">{</span>
+            <span class="k">if</span> <span class="o">(</span>this.status <span class="o">===</span> FULFILLED<span class="o">)</span> <span class="o">{</span>
+                setTimeout<span class="o">(()</span> <span class="o">=&gt;</span> <span class="o">{</span>
+                    try<span class="o">{</span>
+                        <span class="nb">let </span>x <span class="o">=</span> onfulfilled<span class="o">(</span>this.value<span class="o">)</span>
+                        resolvePromise<span class="o">(</span>p, x, resolve, reject<span class="o">)</span>
+                    <span class="o">}</span>catch<span class="o">(</span>e<span class="o">){</span>
+                        reject<span class="o">(</span>e<span class="o">)</span>
+                    <span class="o">}</span>
+                <span class="o">})</span>
+            <span class="o">}</span>
+            <span class="k">if</span> <span class="o">(</span>this.status <span class="o">===</span> REJECTED<span class="o">)</span> <span class="o">{</span>
+                setTimeout<span class="o">(()</span> <span class="o">=&gt;</span> <span class="o">{</span>
+                    try<span class="o">{</span>
+                        <span class="nb">let </span>x <span class="o">=</span> onreject<span class="o">(</span>this.reason<span class="o">)</span>
+                        resolvePromise<span class="o">(</span>p, x, resolve, reject<span class="o">)</span>
+                    <span class="o">}</span>catch<span class="o">(</span>e<span class="o">){</span>
+                        reject<span class="o">(</span>e<span class="o">)</span>
+                    <span class="o">}</span>
+                <span class="o">})</span>
+                
+            <span class="o">}</span>
+            <span class="k">if</span> <span class="o">(</span>this.status <span class="o">===</span> PENDDING<span class="o">)</span> <span class="o">{</span>
+                this.resolveCallbacks.push<span class="o">(()</span> <span class="o">=&gt;</span> <span class="o">{</span>
+                    setTimeout<span class="o">(()</span> <span class="o">=&gt;</span> <span class="o">{</span>
+                        try<span class="o">{</span>
+                            <span class="nb">let </span>x <span class="o">=</span> onfulfilled<span class="o">(</span>this.value<span class="o">)</span>
+                            resolvePromise<span class="o">(</span>p, x, resolve, reject<span class="o">)</span>
+                        <span class="o">}</span>catch<span class="o">(</span>e<span class="o">){</span>
+                            reject<span class="o">(</span>e<span class="o">)</span>
+                        <span class="o">}</span>
+                    <span class="o">})</span>
+                <span class="o">})</span>
+                this.rejectCallbacks.push<span class="o">(()</span> <span class="o">=&gt;</span> <span class="o">{</span>
+                    setTimeout<span class="o">(()</span> <span class="o">=&gt;</span> <span class="o">{</span>
+                        try<span class="o">{</span>
+                            <span class="nb">let </span>x <span class="o">=</span> onreject<span class="o">(</span>this.reason<span class="o">)</span>
+                            resolvePromise<span class="o">(</span>p, x, resolve, reject<span class="o">)</span>
+                        <span class="o">}</span>catch<span class="o">(</span>e<span class="o">){</span>
+                            reject<span class="o">(</span>e<span class="o">)</span>
+                        <span class="o">}</span>
+                    <span class="o">})</span>
+                <span class="o">})</span>
+            <span class="o">}</span>
+        <span class="o">})</span>
+        <span class="k">return </span>p
+    <span class="o">}</span>
+
+const resolvePromise <span class="o">=</span> <span class="o">(</span>p, x, resolve, reject<span class="o">)</span> <span class="o">=&gt;</span> <span class="o">{</span>
+    //判断x的类型
+    <span class="k">if</span><span class="o">(</span>typeof x <span class="o">===</span> <span class="s2">"object"</span> <span class="o">&amp;&amp;</span> x <span class="o">!==</span> null <span class="o">||</span> typeof x <span class="o">===</span> <span class="s2">"function"</span><span class="o">){</span>
+        try<span class="o">{</span>
+            <span class="nb">let </span><span class="k">then</span> <span class="o">=</span> x.then
+            <span class="k">if</span><span class="o">(</span>typeof <span class="k">then</span> <span class="o">===</span> <span class="s2">"function"</span><span class="o">){</span>
+                //x是promise就采用promise执行的结果
+                x.then<span class="o">(</span>y <span class="o">=&gt;</span> resolve<span class="o">(</span>y<span class="o">)</span>,r <span class="o">=&gt;</span> reject<span class="o">(</span>r<span class="o">))</span>
+            <span class="o">}</span>
+        <span class="o">}</span>catch<span class="o">(</span>e<span class="o">){</span>
+            reject<span class="o">(</span>e<span class="o">)</span>
+        <span class="o">}</span>
+    <span class="o">}</span><span class="k">else</span><span class="o">{</span>
+        resolve<span class="o">(</span>x<span class="o">)</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+此时，如果then方法里面返回的promise是下面这样的该怎么解决：
+<span class="nb">let </span>promise <span class="o">=</span> new Promise<span class="o">((</span>resolve, reject<span class="o">)</span> <span class="o">=&gt;</span> <span class="o">{</span>
+    resolve<span class="o">(</span><span class="s2">"ok1"</span><span class="o">)</span>
+<span class="o">})</span>
+<span class="nb">let </span>p1 <span class="o">=</span> promise.then<span class="o">(</span>data <span class="o">=&gt;</span> <span class="o">{</span>
+    console.log<span class="o">(</span><span class="s2">"success1:"</span> + data<span class="o">)</span>
+    <span class="k">return </span>new Promise<span class="o">((</span>resolve, reject<span class="o">)</span> <span class="o">=&gt;</span> <span class="o">{</span>
+        resolve<span class="o">(</span>new Promise<span class="o">(()</span> <span class="o">=&gt;</span> <span class="o">{</span>
+            resolve<span class="o">(</span><span class="s2">"ok2"</span><span class="o">)</span>
+        <span class="o">}))</span>
+    <span class="o">})</span>
+<span class="o">}</span>, err <span class="o">=&gt;</span> <span class="o">{</span>
+    console.log<span class="o">(</span><span class="s2">"error1: "</span>+err<span class="o">)</span>
+<span class="o">})</span>
+<span class="nb">let </span>p2 <span class="o">=</span> p1.then<span class="o">(</span>data <span class="o">=&gt;</span> <span class="o">{</span>
+    console.log<span class="o">(</span><span class="s2">"success2:"</span> + data<span class="o">)</span>
+<span class="o">}</span>, err <span class="o">=&gt;</span> <span class="o">{</span>
+    console.log<span class="o">(</span><span class="s2">"error2: "</span>+err<span class="o">)</span>
+<span class="o">})</span>
+采用递归的方式一直执行resolvePromise方法
+const resolvePromise <span class="o">=</span> <span class="o">(</span>p, x, resolve, reject<span class="o">)</span> <span class="o">=&gt;</span> <span class="o">{</span>
+    //判断x的类型
+    <span class="k">if</span><span class="o">(</span>typeof x <span class="o">===</span> <span class="s2">"object"</span> <span class="o">&amp;&amp;</span> x <span class="o">!==</span> null <span class="o">||</span> typeof x <span class="o">===</span> <span class="s2">"function"</span><span class="o">){</span>
+        try<span class="o">{</span>
+            <span class="nb">let </span><span class="k">then</span> <span class="o">=</span> x.then
+            <span class="k">if</span><span class="o">(</span>typeof <span class="k">then</span> <span class="o">===</span> <span class="s2">"function"</span><span class="o">){</span>
+                //x是promise就采用promise执行的结果
+                x.then<span class="o">(</span>y <span class="o">=&gt;</span> resolvePromise<span class="o">(</span>p, y, resolve, reject<span class="o">)</span>,r <span class="o">=&gt;</span> reject<span class="o">(</span>r<span class="o">))</span>
+            <span class="o">}</span>
+        <span class="o">}</span>catch<span class="o">(</span>e<span class="o">){</span>
+            reject<span class="o">(</span>e<span class="o">)</span>
+        <span class="o">}</span>
+    <span class="o">}</span><span class="k">else</span><span class="o">{</span>
+        resolve<span class="o">(</span>x<span class="o">)</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="如何中断一个promise链">如何中断一个promise链</h2>
+<blockquote>
+  <p>就是返回一个等待的promsie</p>
+</blockquote>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+</pre></td> --><td class="rouge-code"><pre><span class="nb">let </span>p <span class="o">=</span> new Promise<span class="o">((</span>resolve, reject<span class="o">)</span> <span class="o">=&gt;</span> <span class="o">{</span>
+    resolve<span class="o">()</span>
+<span class="o">})</span>
+p.then<span class="o">(()</span> <span class="o">=&gt;</span> <span class="o">{</span>
+    console.log<span class="o">(</span><span class="s2">"1111"</span><span class="o">)</span>
+    <span class="k">return </span>new Promise<span class="o">(()</span> <span class="o">=&gt;</span> <span class="o">{</span> <span class="o">})</span>
+<span class="o">})</span>.then<span class="o">(()</span> <span class="o">=&gt;</span> <span class="o">{</span>
+    console.log<span class="o">(</span><span class="s2">"2222"</span><span class="o">)</span>
+<span class="o">})</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+:ET

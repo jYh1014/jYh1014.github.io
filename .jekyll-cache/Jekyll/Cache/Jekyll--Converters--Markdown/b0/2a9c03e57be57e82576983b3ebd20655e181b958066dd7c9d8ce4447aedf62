@@ -1,0 +1,400 @@
+I"�o<ul id="markdown-toc">
+  <li><a href="#webpack源码之tapable" id="markdown-toc-webpack源码之tapable"><strong>webpack源码之tapable</strong></a></li>
+  <li><a href="#webpack源码之loader" id="markdown-toc-webpack源码之loader"><strong>webpack源码之loader</strong></a></li>
+</ul>
+
+<hr />
+
+<p>title: webpack源码
+author: jyy
+date: 2020-04-20 11:20:00 +0800
+tags: [webpack]
+pin: true
+—</p>
+
+<h2 id="webpack源码之tapable"><strong>webpack源码之tapable</strong></h2>
+
+<ul>
+  <li>要想了解webpack源码，那要提前了解一下其相关知识。比如插件的执行机制其实就是一种发布订阅的模式，在插件里面注册监听事件，然后在webpack源码里相应的时机去触发这个事件。</li>
+</ul>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+</pre></td> --><td class="rouge-code"><pre><span class="kd">const</span> <span class="p">{</span> <span class="nx">SyncHook</span> <span class="p">}</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="dl">"</span><span class="s2">tapable</span><span class="dl">"</span><span class="p">)</span>
+<span class="kd">const</span> <span class="nx">syncHook</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">SyncHook</span><span class="p">([</span><span class="dl">"</span><span class="s2">name</span><span class="dl">"</span><span class="p">,</span> <span class="dl">"</span><span class="s2">age</span><span class="dl">"</span><span class="p">])</span>
+<span class="nx">syncHook</span><span class="p">.</span><span class="nx">tap</span><span class="p">(</span><span class="dl">"</span><span class="s2">1</span><span class="dl">"</span><span class="p">,</span> <span class="p">(</span><span class="nx">name</span><span class="p">,</span> <span class="nx">age</span><span class="p">)</span><span class="o">=&gt;</span><span class="p">{</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">name</span><span class="p">,</span> <span class="nx">age</span><span class="p">)</span>
+<span class="p">})</span>
+<span class="nx">syncHook</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="dl">"</span><span class="s2">jyy</span><span class="dl">"</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<h2 id="webpack源码之loader"><strong>webpack源码之loader</strong></h2>
+
+<ul>
+  <li>为什么需要loader？因为webpack运行在node环境中，只能识别js模块，对于css以及jsx后缀的文件以及图片它都不能识别，这个时候loader就出现了，它的存在就是为了解决这个问题。loader的作用就是能将源代码转化成webpack可识别的模块，也就是说loader最后输出的是一段js代码。</li>
+  <li>什么是loader？因为我们webpack所有的配置都是运行在node环境中，所以loader其实就是node模块，也就是说将来这个loader是要给webpack用的。那我们在自定义loader的时候就要注意一下要遵循commonjs规范，不能使用esm的语法。本质上一个loader模块导出的就是一个函数,看下面代码，这个就是一个最简单的loader。</li>
+</ul>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td> --><td class="rouge-code"><pre><span class="kd">function</span> <span class="nx">loader</span><span class="p">(</span><span class="nx">source</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">//source是源文件代码，是字符串或者是buffer格式。</span>
+    <span class="k">return</span> <span class="nx">source</span>
+<span class="p">}</span>
+<span class="nx">modules</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="nx">loader</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<ul>
+  <li>一个真正的loader包含两部分，pitch函数和normal函数，一般pitch函数可以省略不写，我们举个例子来看一下pitch函数的存在对整个loader执行顺序的影响。我们自定义三个loader，loader1、loader2和loader3。然后在webpack配置里面加上这几个loader，要注意一下，默认情况下，webpack会去node_modules文件夹里面找loader，但是我们自定义的loader是在项目根目录下,需要配置一下resolveLoader。
+    <div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+</pre></td> --><td class="rouge-code"><pre>├── dist
+│   ├── app.js
+│   └── index.html
+├── loaders
+│   ├── loader1.js
+│   ├── loader2.js
+│   └── loader3.js
+├── package.json
+├── src
+│   ├── index.less
+│   ├── main.js
+│   └── test.js
+└── webpack.config.js
+</pre></td></tr></tbody></table></code></pre></div>    </div>
+  </li>
+</ul>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+</pre></td> --><td class="rouge-code"><pre><span class="kd">function</span> <span class="nx">loader1</span><span class="p">(</span><span class="nx">source</span><span class="p">){</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">source</span> <span class="o">+</span> <span class="dl">"</span><span class="s2">===loader1===</span><span class="dl">"</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="nx">loader1</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+</pre></td> --><td class="rouge-code"><pre><span class="kd">function</span> <span class="nx">loader2</span><span class="p">(</span><span class="nx">source</span><span class="p">){</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">source</span> <span class="o">+</span> <span class="dl">"</span><span class="s2">===loader2===</span><span class="dl">"</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="nx">loader2</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+</pre></td> --><td class="rouge-code"><pre><span class="kd">function</span> <span class="nx">loader3</span><span class="p">(</span><span class="nx">source</span><span class="p">){</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">source</span> <span class="o">+</span> <span class="dl">"</span><span class="s2">===loader3===</span><span class="dl">"</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="nx">loader3</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+</pre></td> --><td class="rouge-code"><pre><span class="c1">//webpack.config.js文件</span>
+<span class="kd">const</span> <span class="nx">path</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="dl">"</span><span class="s2">path</span><span class="dl">"</span><span class="p">)</span>
+<span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="na">mode</span><span class="p">:</span> <span class="dl">"</span><span class="s2">development</span><span class="dl">"</span><span class="p">,</span>
+    <span class="na">entry</span><span class="p">:</span> <span class="p">{</span>
+        <span class="na">app</span><span class="p">:</span> <span class="dl">"</span><span class="s2">./src/main.js</span><span class="dl">"</span>
+    <span class="p">},</span>
+    <span class="na">output</span><span class="p">:</span> <span class="p">{</span>
+        <span class="na">path</span><span class="p">:</span> <span class="nx">path</span><span class="p">.</span><span class="nx">resolve</span><span class="p">(</span><span class="nx">__dirname</span><span class="p">,</span> <span class="dl">"</span><span class="s2">dist</span><span class="dl">"</span><span class="p">),</span>
+        <span class="na">filename</span><span class="p">:</span> <span class="dl">"</span><span class="s2">[name].js</span><span class="dl">"</span>
+    <span class="p">},</span>
+    <span class="na">resolveLoader</span><span class="p">:</span> <span class="p">{</span>
+        <span class="c1">//如果在node_modules文件夹里面找不到，那就去loaders文件夹里面找</span>
+        <span class="na">modules</span><span class="p">:</span> <span class="p">[</span><span class="dl">"</span><span class="s2">node_modules</span><span class="dl">"</span><span class="p">,</span> <span class="nx">path</span><span class="p">.</span><span class="nx">resolve</span><span class="p">(</span><span class="nx">__dirname</span><span class="p">,</span><span class="dl">"</span><span class="s2">loaders</span><span class="dl">"</span><span class="p">)]</span>
+    <span class="p">},</span>
+    <span class="na">module</span><span class="p">:</span> <span class="p">{</span>
+        <span class="na">rules</span><span class="p">:</span> <span class="p">[</span>
+            <span class="p">{</span>
+                <span class="na">test</span><span class="p">:</span> <span class="sr">/</span><span class="se">\.</span><span class="sr">js$/</span><span class="p">,</span>
+                <span class="na">use</span><span class="p">:</span> <span class="p">[</span><span class="dl">"</span><span class="s2">loader1</span><span class="dl">"</span><span class="p">,</span><span class="dl">"</span><span class="s2">loader2</span><span class="dl">"</span><span class="p">,</span><span class="dl">"</span><span class="s2">loader3</span><span class="dl">"</span><span class="p">]</span>
+            <span class="p">}</span>
+        <span class="p">]</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+</pre></td></tr></tbody></table></code></pre></div></div>
+<blockquote>
+  <p>执行npm run build命令，看一下loader的输出顺序。loader3 -》loader2 -》loader1，也就是说是从右向左执行的。</p>
+</blockquote>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+</pre></td> --><td class="rouge-code"><pre><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span><span class="o">===</span><span class="nx">loader3</span><span class="o">===</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span><span class="o">===</span><span class="nx">loader2</span><span class="o">===</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span><span class="o">===</span><span class="nx">loader1</span><span class="o">===</span>
+<span class="c1">//console.log(1);这个是mian.js源文件内容。</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<blockquote>
+  <p>上面的情况没有添加pitch，下面我们加上之后看看pitch函数以及loader（normal-loader）的执行顺序。pitch第一个参数的意思是剩下的loader，第二个参数是之前的loader，比如你在loader2的pitch函数中返回了某个值，那remainingRequest就是loader3，previousRequest就是loader1。</p>
+</blockquote>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+</pre></td> --><td class="rouge-code"><pre><span class="kd">function</span> <span class="nx">loader1</span><span class="p">(</span><span class="nx">source</span><span class="p">){</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">source</span> <span class="o">+</span> <span class="dl">"</span><span class="s2">===loader1===</span><span class="dl">"</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="nx">loader1</span><span class="p">.</span><span class="nx">pitch</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">remainingRequest</span><span class="p">,</span><span class="nx">previousRequest</span><span class="p">,</span><span class="nx">data</span><span class="p">){</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="dl">"</span><span class="s2">===pitch1===</span><span class="dl">"</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="nx">loader1</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+</pre></td> --><td class="rouge-code"><pre><span class="kd">function</span> <span class="nx">loader2</span><span class="p">(</span><span class="nx">source</span><span class="p">){</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">source</span> <span class="o">+</span> <span class="dl">"</span><span class="s2">===loader2===</span><span class="dl">"</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="nx">loader2</span><span class="p">.</span><span class="nx">pitch</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">remainingRequest</span><span class="p">,</span><span class="nx">previousRequest</span><span class="p">,</span><span class="nx">data</span><span class="p">){</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="dl">"</span><span class="s2">===pitch2===</span><span class="dl">"</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="nx">loader2</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+</pre></td> --><td class="rouge-code"><pre><span class="kd">function</span> <span class="nx">loader3</span><span class="p">(</span><span class="nx">source</span><span class="p">){</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">source</span> <span class="o">+</span> <span class="dl">"</span><span class="s2">===loader3===</span><span class="dl">"</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="nx">loader3</span><span class="p">.</span><span class="nx">pitch</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">remainingRequest</span><span class="p">,</span><span class="nx">previousRequest</span><span class="p">,</span><span class="nx">data</span><span class="p">){</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="dl">"</span><span class="s2">===pitch3===</span><span class="dl">"</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="nx">loader3</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+
+<blockquote>
+  <p>build之后，看到输出结果是这样的,也就是说pitch函数是从左向右执行的。如果pitch函数有返回值的话，那就中断loader的执行，转而去执行上一个loader，还把返回值作为参数传给这个loader。</p>
+</blockquote>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+</pre></td> --><td class="rouge-code"><pre><span class="o">===</span><span class="nx">pitch1</span><span class="o">===</span>
+<span class="o">===</span><span class="nx">pitch2</span><span class="o">===</span>
+<span class="o">===</span><span class="nx">pitch3</span><span class="o">===</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span><span class="o">===</span><span class="nx">loader3</span><span class="o">===</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span><span class="o">===</span><span class="nx">loader2</span><span class="o">===</span>
+<span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span><span class="o">===</span><span class="nx">loader1</span><span class="o">===</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<p><img src="/assets/img/sample/webpackym-1.jpeg" alt="diff" />
+<img src="/assets/img/sample/webpackym-2.jpeg" alt="diff" /></p>
+
+<ul>
+  <li>loader分为4种，pre、normal、inline、post。优先级顺序就是pre、normal、inline、post。如果有pitch的话，那pitch的执行顺序和loader的相反。
+    <div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+</pre></td> --><td class="rouge-code"><pre><span class="c1">//webpack.config.js</span>
+<span class="p">{</span>
+  <span class="nl">test</span><span class="p">:</span> <span class="sr">/</span><span class="se">\.</span><span class="sr">js$/</span><span class="p">,</span>
+  <span class="nx">enforce</span><span class="p">:</span> <span class="dl">"</span><span class="s2">pre</span><span class="dl">"</span> <span class="p">,</span>
+  <span class="nx">use</span><span class="p">:</span> <span class="p">[</span><span class="dl">"</span><span class="s2">pre-loader1</span><span class="dl">"</span><span class="p">,</span> <span class="dl">"</span><span class="s2">pre-loader2</span><span class="dl">"</span><span class="p">]</span>
+<span class="p">},</span>
+<span class="p">{</span>
+  <span class="na">test</span><span class="p">:</span> <span class="sr">/</span><span class="se">\.</span><span class="sr">js$/</span><span class="p">,</span>
+  <span class="na">enforce</span><span class="p">:</span> <span class="dl">"</span><span class="s2">post</span><span class="dl">"</span> <span class="p">,</span>
+  <span class="na">use</span><span class="p">:</span> <span class="p">[</span><span class="dl">"</span><span class="s2">post-loader1</span><span class="dl">"</span><span class="p">,</span> <span class="dl">"</span><span class="s2">post-loader2</span><span class="dl">"</span><span class="p">]</span>
+<span class="p">},</span>
+<span class="p">{</span>
+  <span class="na">test</span><span class="p">:</span> <span class="sr">/</span><span class="se">\.</span><span class="sr">js$/</span><span class="p">,</span>
+  <span class="na">use</span><span class="p">:</span> <span class="p">[</span><span class="dl">"</span><span class="s2">normal-loader1</span><span class="dl">"</span><span class="p">,</span> <span class="dl">"</span><span class="s2">normal-loader2</span><span class="dl">"</span><span class="p">]</span>
+<span class="p">},</span>
+</pre></td></tr></tbody></table></code></pre></div>    </div>
+    <div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+</pre></td> --><td class="rouge-code"><pre><span class="c1">//main.js</span>
+<span class="k">import</span> <span class="dl">"</span><span class="s2">inline-loader1!inline-loader2!./test.js</span><span class="dl">"</span> <span class="c1">//行内loader</span>
+</pre></td></tr></tbody></table></code></pre></div>    </div>
+    <blockquote>
+      <p>build后结果如下</p>
+    </blockquote>
+  </li>
+</ul>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+</pre></td> --><td class="rouge-code"><pre><span class="o">===</span><span class="nx">post1</span><span class="o">-</span><span class="nx">pitch</span><span class="o">===</span>
+<span class="o">===</span><span class="nx">post2</span><span class="o">-</span><span class="nx">pitch</span><span class="o">===</span>
+<span class="o">===</span><span class="nx">normal1</span><span class="o">-</span><span class="nx">pitch</span><span class="o">===</span>
+<span class="o">===</span><span class="nx">normal2</span><span class="o">-</span><span class="nx">pitch</span><span class="o">===</span>
+<span class="o">===</span><span class="nx">pre1</span><span class="o">-</span><span class="nx">pitch</span><span class="o">===</span>
+<span class="o">===</span><span class="nx">pre2</span><span class="o">-</span><span class="nx">pitch</span><span class="o">===</span>
+<span class="nx">pre</span><span class="o">-</span><span class="nx">loader2</span>
+<span class="nx">pre</span><span class="o">-</span><span class="nx">loader1</span>
+<span class="nx">normal</span><span class="o">-</span><span class="nx">loader2</span>
+<span class="nx">normal</span><span class="o">-</span><span class="nx">loader1</span>
+<span class="nx">post</span><span class="o">-</span><span class="nx">loader2</span>
+<span class="nx">post</span><span class="o">-</span><span class="nx">loader1</span> <span class="c1">//到这一行是对main.js文件进行loader解析的执行结果，下面是对test。js文件解析的结果</span>
+<span class="o">===</span><span class="nx">post1</span><span class="o">-</span><span class="nx">pitch</span><span class="o">===</span>
+<span class="o">===</span><span class="nx">post2</span><span class="o">-</span><span class="nx">pitch</span><span class="o">===</span>
+<span class="o">===</span><span class="nx">inline1</span><span class="o">-</span><span class="nx">pitch</span><span class="o">===</span>
+<span class="o">===</span><span class="nx">inline2</span><span class="o">-</span><span class="nx">pitch</span><span class="o">===</span>
+<span class="o">===</span><span class="nx">normal1</span><span class="o">-</span><span class="nx">pitch</span><span class="o">===</span>
+<span class="o">===</span><span class="nx">normal2</span><span class="o">-</span><span class="nx">pitch</span><span class="o">===</span>
+<span class="o">===</span><span class="nx">pre1</span><span class="o">-</span><span class="nx">pitch</span><span class="o">===</span>
+<span class="o">===</span><span class="nx">pre2</span><span class="o">-</span><span class="nx">pitch</span><span class="o">===</span>
+<span class="nx">pre</span><span class="o">-</span><span class="nx">loader2</span>
+<span class="nx">pre</span><span class="o">-</span><span class="nx">loader1</span>
+<span class="nx">normal</span><span class="o">-</span><span class="nx">loader2</span>
+<span class="nx">normal</span><span class="o">-</span><span class="nx">loader1</span>
+<span class="nx">inline</span><span class="o">-</span><span class="nx">loader2</span>
+<span class="nx">inline</span><span class="o">-</span><span class="nx">loader1</span>
+<span class="nx">post</span><span class="o">-</span><span class="nx">loader2</span>
+<span class="nx">post</span><span class="o">-</span><span class="nx">loader1</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<ul>
+  <li>下面我们来具体写一个小例子,我们在main文件里引入test文件，我们想要拿到test文件导出的内容。
+```js
+//main.js
+import a from “loader1!./test.js”
+console.log(a)</li>
+</ul>
+
+<p>//test.js
+“我是test.js”</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+6
+</pre></td> --><td class="rouge-code"><pre>```js
+function loader1(source){
+    console.log(source + "===loader1===")
+    return source
+}
+module.exports = loader1
+</pre></td></tr></tbody></table></code></pre></div></div>
+<blockquote>
+  <p>如果我们这样写的直接输出source的话，那a的值就是空的。也就是说test文件并没有导出任何值。也就是说现在test文件被loader转化后内容是”test.js”，并没有任何导出的js代码。那我们加上导出代码改成下面这样试试。</p>
+</blockquote>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><table class="rouge-table"><tbody><tr><!-- <td class="rouge-gutter gl"><pre class="lineno">1
+2
+3
+4
+5
+</pre></td> --><td class="rouge-code"><pre><span class="kd">function</span> <span class="nx">loader1</span><span class="p">(</span><span class="nx">source</span><span class="p">){</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">source</span> <span class="o">+</span> <span class="dl">"</span><span class="s2">===loader1===</span><span class="dl">"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s2">`module.exports=</span><span class="p">${</span><span class="nx">source</span><span class="p">}</span><span class="s2">`</span>
+<span class="p">}</span>
+<span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="nx">loader1</span>
+</pre></td></tr></tbody></table></code></pre></div></div>
+<blockquote>
+  <p>这样test文件被转化成了“module.exports=test.js”，那我们import这个文件，就能拿到其导出的值就是“我是test.js”。也就是说，不管你是几个loader组合使用的，最后执行的那个loader输出的值要加上module.exports，不然别的模块将拿不到其导出值。</p>
+</blockquote>
+
+<ul>
+  <li>内联 loader 可以通过添加不同前缀，跳过其他类型 loader。</li>
+</ul>
+
+<p><code class="language-plaintext highlighter-rouge">!</code> 跳过 normal loader。
+<code class="language-plaintext highlighter-rouge">-!</code> 跳过 pre 和 normal loader。
+<code class="language-plaintext highlighter-rouge">!!</code> 跳过 pre、 normal 和 post loader。</p>
+:ET

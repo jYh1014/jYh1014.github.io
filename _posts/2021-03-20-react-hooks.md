@@ -125,10 +125,34 @@ function useMemo(factory, deps) {
 ## useEffect
 
 - 给函数组件增加了操作副作用的能力，传给useEffect的第一个参数会在组件渲染之后执行，如果这个函数有返回值，那这个函数函数会在下次执行useEffect先执行，目的是要清除副作用。它跟 class 组件中的 componentDidMount、componentDidUpdate 和 componentWillUnmount 具有相同的用途。
-- 场景： 改变 DOM、添加订阅、设置定时器、记录日志等等。
-- 同样每次使用useEffect也是一个独立的闭包。第二个参数也是依赖项。只有在依赖项的值有变化时或者是空数组才会再次执行useEffect。
+- 场景： 请求数据、改变 DOM、添加订阅、设置定时器、记录日志等等。
+- 同样每次使用useEffect也是一个独立的闭包。第二个参数也是依赖项。只有在依赖项的值有变化时才会再次执行useEffect。依赖项是空数组时只会执行一次，不写依赖项时每次都会执行。
 
 - 想在effect的回调函数里读取最新的值而不是捕获的值。最简单的实现方法是使用refs
+```js
+function Counter(){
+  let lastNumber = React.useRef();
+  let [state, setState] = React.useState(0)
+  React.useEffect(() => {
+    console.log("effect====")
+    lastNumber.current = state;
+    setTimeout(() =>{
+      
+      // setState(state+1)
+      // console.log(state)
+      console.log(lastNumber.current)
+    },3000)
+  })
+  console.log("render====")
+  return (
+    <div>
+      <p>{state}</p>
+      <button onClick={()=> setState(state+1)}>+</button>
+    </div>
+  )
+}
+```
+
 ```js
 function Parent() {
   const [query, setQuery] = useState("react");

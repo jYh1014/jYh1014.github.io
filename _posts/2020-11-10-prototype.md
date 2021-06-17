@@ -42,3 +42,34 @@ console.log(person.constructor === Person.prototype.constructor === Person)
 
 
 ![diff](/assets/img/sample/prototype.jpeg)
+
+
+## es5实现继承的方法
+
+- 继承父类实例的属性。
+- 继承父类原型上的属性，也就是实现链的关联。
+
+```js
+function Parent(){
+    this.name = "parent"
+}
+function Child(){
+    Parent.call(this) //实现父类实例属性的继承
+    this.age = 20
+}
+Child.prototype = Object.create(Parent.prototype) //实现链的关联
+//Object.setPrototypeOf(Child.prototype, Parent.prototype)
+
+//Object.create原理如下
+function Create(parentProto){
+    function Temp(){
+        this.constructor = Child
+    }
+    Temp.prototype = parentProto
+    return new Temp()
+}
+
+//es6中extends继承不仅包括上面已经提到的继承，还包括父类静态属性的继承
+
+Child.__proto__ = Parent
+```
